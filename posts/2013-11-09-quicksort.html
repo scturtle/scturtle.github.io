@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ScTurtle's Pool  - Average Running Time of Quicksort </title>
+        <link rel="shortcut icon" href="../images/favicon.png" />
+        <link rel="stylesheet" type="text/css" href="../asserts/default.css" />
+        <link rel="stylesheet" type="text/css" href="../asserts/pygments.css" />
+        <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">ScTurtle's Pool</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../archive.html">Archive</a>
+                <a href="../tags.html">Tags</a>
+                <a href="../about.html">About</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Average Running Time of Quicksort</h1>
+            <div class="info">
+  Posted on November  9, 2013
+   on <a href="../tags/math.html">math</a>, <a href="../tags/algo.html">algo</a> 
+</div>
+
+<p>From an interesting <a href="http://aofa.cs.princeton.edu/lectures/lectures13/AA01-AofA.pdf">slide</a>.</p>
+<p>We denote <span class="math inline">\(C_N\)</span> as the <em>expected</em> number of comparisons used by sorting an array of length <span class="math inline">\(N\)</span>. The recursive formula is like this: <span class="math display">\[C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})\]</span></p>
+<p>which <span class="math inline">\(N+1\)</span> is the comparisons needed for partitioning, and then plus <span class="math inline">\(N\)</span> ways of partitioning with equal probability. Also we have <span class="math inline">\(C_0 = 0\)</span>.</p>
+<p>Noticing the symmetric parttern in the sum part, we get: <span class="math display">\[C_N = (N+1) + \frac 2N \sum_{1\leq k \leq N} C_{k-1}\]</span> then <span class="math display">\[NC_N = N(N+1) + 2 \sum_{1\leq k \leq N} C_{k-1}\]</span></p>
+<p>Time to high school math. First, we write down same formula for N-1: <span class="math display">\[(N-1)C_{N-1} = (N-1)N + 2 \sum_{1\leq k \leq N-1} C_{k-1}\]</span></p>
+<p>Then we subtract the above two equations to get: <span class="math display">\[NC_N - (N-1)C_{N-1} = 2N + 2C_{N-1}\]</span> <span class="math display">\[NC_N = (N+1)C_{N-1} + 2N\]</span></p>
+<p>Key and tricky step, divide both side by <span class="math inline">\(N(N+1)\)</span>: <span class="math display">\[\frac{C_N}{N+1} = \frac{C_{N-1}}{N} + \frac{2}{N+1}\]</span></p>
+<p>Expand the right part to the end of the world: <span class="math display">\[\begin{split}
+\frac{C_N}{N+1} &amp;= \frac{C_{N-1}}{N} + \frac 2{N+1} \\
+&amp;= \frac{C_{N-2}}{N-1} + \frac 2N + \frac 2{N+1} \\
+&amp;= C_0 + \frac 22 + \frac 23 + \dots + \frac 2N + \frac 2{N+1}
+\end{split}\]</span></p>
+<p>Ignore small items: <span class="math display">\[c_N \sim 2N \sum_{1 \leq k \leq N} \frac 1k - 2N\]</span></p>
+<p>Finally, use the magic <a href="http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant"><code>Euler constant</code></a> <span class="math inline">\(\gamma\)</span>: <span class="math display">\[\begin{split}
+c_N &amp;\sim 2N (\int_1^\infty \frac 1x \mathrm{d} x + \gamma) - 2N \\
+&amp;=2N \ln N - 2(1-\gamma)N
+\end{split}\]</span></p>
+<p>It’s <span class="math inline">\(O(N \log N)\)</span>.</p>
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+
+        </div>
+        <div id="footer">
+          <p><a href="https://github.com/scturtle/turtleblog">turtleblog</a> &copy;
+            <script>document.write(new Date().getFullYear());</script> scturtle
+          <p> <a href="mailto:scturtle@gmail.com">mail</a>,
+            <a href="https://twitter.com/scturtle">twitter</a>,
+            <a href="https://github.com/scturtle">github</a>,
+            <a href="../atom.xml" rel="alternate" title="Recent Blogs | ScTurtle's Pool">feed</a>
+        </div>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33410961-1']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+    </body>
+</html>

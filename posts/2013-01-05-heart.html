@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ScTurtle's Pool  - Draw a 3D heart in browser </title>
+        <link rel="shortcut icon" href="../images/favicon.png" />
+        <link rel="stylesheet" type="text/css" href="../asserts/default.css" />
+        <link rel="stylesheet" type="text/css" href="../asserts/pygments.css" />
+        <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">ScTurtle's Pool</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../archive.html">Archive</a>
+                <a href="../tags.html">Tags</a>
+                <a href="../about.html">About</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Draw a 3D heart in browser</h1>
+            <div class="info">
+  Posted on January  5, 2013
+   on <a href="../tags/other.html">other</a> 
+</div>
+
+<p>Valentine’s Day is approaching. Let’s have some fun.</p>
+<p>First, we all know that <code>mathematica</code> can draw a beautiful 3d heart with only one single command:</p>
+<div class="highlight"><pre>ContourPlot3D[
+  320 (-x^2 z^3 - 9 y^2 z^3/80 + (x^2 + 9 y^2/4 + z^2 - 1)^3) == 0,
+  {x, -1.3, 1.3}, {y, -1.3, 1.3}, {z, -1.3, 1.3}, 
+  ContourStyle -> Directive[Red]]</pre></div>
+<div class="figure">
+<img src="../images/heart.png" />
+
+</div>
+<p>Let’s save it as a model file with this command:</p>
+<div class="highlight"><pre>Export["heart.ply", %]</pre></div>
+<p>We need <code>blender</code> to convert it into another format. Download it <a href="http://www.blender.org/download/get-blender">here</a> and install <code>three.js</code> extension <a href="https://github.com/mrdoob/three.js/tree/master/utils/exporters/blender">here</a>.</p>
+<p>Open <code>blender</code> you will see a default cube. On the left menu column you will see a <code>Delete</code>.<br />
+<em>Yes! Go you!</em><br />
+Then <code>File</code> -&gt; <code>Import</code> -&gt; <code>Stanford (.ply)</code>, and select our <code>heart.ply</code>. You will see it like this.</p>
+<div class="figure">
+<img src="../images/heart2.png" />
+
+</div>
+<p>Next, <code>File</code> -&gt; <code>User Preferences</code> -&gt; <code>Addons</code>, find a addon named <code>three.js format</code> and enable it. Then <code>File</code> -&gt; <code>Export</code> -&gt; <code>Three.js (.js)</code> and we will get a <code>heart.js</code>. It can be imported by <code>three.js</code> and shown in browser.</p>
+<p>The final step contains a little more codes (<a href="https://github.com/scturtle/heart">github</a>) and <a href="http://scturtle.me/heart/heart.html">here</a> is the final example.</p>
+<div class="figure">
+<img src="../images/heart3.png" />
+
+</div>
+<p>This model is handy and you can do more romantic things with powerful <code>three.js</code>.<br />
+But you have to make sure that she has a “real” browser supporting <code>webGL</code>.</p>
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+
+        </div>
+        <div id="footer">
+          <p><a href="https://github.com/scturtle/turtleblog">turtleblog</a> &copy;
+            <script>document.write(new Date().getFullYear());</script> scturtle
+          <p> <a href="mailto:scturtle@gmail.com">mail</a>,
+            <a href="https://twitter.com/scturtle">twitter</a>,
+            <a href="https://github.com/scturtle">github</a>,
+            <a href="../atom.xml" rel="alternate" title="Recent Blogs | ScTurtle's Pool">feed</a>
+        </div>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33410961-1']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+    </body>
+</html>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ScTurtle's Pool  - Configure forward/inverse search with Vim-LaTeX and SamutraPDF </title>
+        <link rel="shortcut icon" href="../images/favicon.png" />
+        <link rel="stylesheet" type="text/css" href="../asserts/default.css" />
+        <link rel="stylesheet" type="text/css" href="../asserts/pygments.css" />
+        <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">ScTurtle's Pool</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../archive.html">Archive</a>
+                <a href="../tags.html">Tags</a>
+                <a href="../about.html">About</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Configure forward/inverse search with Vim-LaTeX and SamutraPDF</h1>
+            <div class="info">
+  Posted on January 22, 2013
+   on <a href="../tags/other.html">other</a> 
+</div>
+
+<p>Get the newest version of <a href="http://vim-latex.svn.sourceforge.net/viewvc/vim-latex/trunk/vimfiles/">Vim-LaTeX</a>. There is a <code>Download GNU tarball</code> link at the bottom. (I use <a href="https://github.com/gmarik/vundle">vundle</a> to install a old version and replace it with the newest.)</p>
+<p>Get the newest version of <a href="https://sites.google.com/site/xhmikosr/progs/officetools">SumatraPDF</a>. Add the directory paths of SumatraPDF and gvim into the system path variable.</p>
+<p>Download <a href="https://dl.dropboxusercontent.com/u/1551217/share/dde.exe">dde.exe</a>. Put it in <code>ftplugin\latex-suite\</code>.</p>
+<p>Modify <code>ftplugin\latex-suite\compiler.vim</code> with the following patch:</p>
+<div class="highlight"><pre><span></span>:::diff
+<span class="gd">--- compiler.vim.orig	Sat Oct 30 00:55:22 2010</span>
+<span class="gi">+++ compiler.vim	Tue Jan 22 18:21:10 2013</span>
+<span class="gu">@@ -321,6 +321,7 @@</span>
+ &quot;           gvim --servername LATEX --remote-silent +%l &quot;%f&quot;
+ &quot;      For inverse search, if you are reading this, then just pressing \ls
+ &quot;      will work.
+<span class="gi">+let s:path = expand('&lt;sfile&gt;:p:h')</span>
+ function! Tex_ForwardSearchLaTeX()
+ 	if &amp;ft != 'tex'
+ 		echo &quot;calling Tex_ForwardSeachLaTeX from a non-tex file&quot;
+<span class="gu">@@ -343,10 +344,20 @@</span>
+ 	
+ 	&quot; inverse search tips taken from Dimitri Antoniou's tip and Benji Fisher's
+ 	&quot; tips on vim.sf.net (vim.sf.net tip #225)
+<span class="gd">-	if (has('win32') &amp;&amp; (viewer == &quot;yap&quot; || viewer == &quot;YAP&quot; || viewer == &quot;Yap&quot;))</span>
+<span class="gi">+	if (has('win32') &amp;&amp; (viewer == &quot;yap&quot; || viewer == &quot;YAP&quot; || viewer == &quot;Yap&quot; || viewer =~? &quot;^sumatrapdf&quot;))</span>
+ 
+<span class="gd">-		let execString = 'silent! !start '. viewer.' -s '.line('.').expand('%').' '.mainfnameRoot</span>
+<span class="gi">+		if (viewer == &quot;yap&quot; || viewer == &quot;YAP&quot; || viewer == &quot;Yap&quot;)</span>
+ 
+<span class="gi">+			let execString = 'silent! !start '. viewer.' -s '.line('.').expand('%').' '.mainfnameRoot</span>
+<span class="gi">+</span>
+<span class="gi">+		elseif viewer =~? &quot;^sumatrapdf&quot;</span>
+<span class="gi">+			</span>
+<span class="gi">+			&quot; SumatraPDF forward search</span>
+<span class="gi">+			let relativeFile=substitute(expand(&quot;%:p&quot;), &quot;\\/&quot;, '\',&quot;g&quot;)</span>
+<span class="gi">+			let pdfname=substitute(mainfnameFull.'.'.s:target, &quot;\\/&quot;, '\',&quot;g&quot;)</span>
+<span class="gi">+			let execString = 'silent! !start &quot;'.s:path.'/dde.exe&quot; SUMATRA SUMATRA control &quot;[ForwardSearch(&quot;'.pdfname.'&quot;,&quot;'.relativeFile.'&quot;,'.line('.').',0,0,0)]&quot; true'</span>
+<span class="gi">+</span>
+<span class="gi">+		endif</span>
+ 
+ 	elseif (has('macunix') &amp;&amp; (viewer == &quot;Skim&quot; || viewer == &quot;PDFView&quot; || viewer == &quot;TeXniscope&quot;))
+ 		&quot; We're on a Mac using a traditional Mac viewer
+</pre></div>
+
+<p>Add following configurations into <code>_vimrc</code>:</p>
+<div class="highlight"><pre><span></span><span class="k">filetype</span> plugin <span class="k">on</span>
+<span class="c">&quot;set shellslash  &quot; conflict with vundle</span>
+<span class="k">set</span> <span class="nb">grepprg</span><span class="p">=</span><span class="k">grep</span>\ <span class="p">-</span>nH\ $*
+<span class="k">filetype</span> indent <span class="k">on</span>
+<span class="k">let</span> <span class="k">g</span>:Tex_Leader<span class="p">=</span><span class="s1">','</span>  <span class="c">&quot; I use this</span>
+<span class="k">let</span> <span class="k">g</span>:tex_flavor<span class="p">=</span><span class="s1">'latex'</span>
+<span class="k">let</span> <span class="k">g</span>:Tex_DefaultTargetFormat <span class="p">=</span> <span class="s1">'pdf'</span>
+<span class="k">let</span> <span class="k">g</span>:Tex_ViewRule_pdf <span class="p">=</span> <span class="s1">'SumatraPDF -reuse-instance -inverse-search &quot;gvim -c \&quot;:RemoteOpen +\%l \%f\&quot;&quot;'</span>
+<span class="k">let</span> <span class="k">g</span>:Tex_CompileRule_pdf <span class="p">=</span> <span class="s1">'pdflatex -synctex=-1 -src-specials -interaction=nonstopmode $*'</span>
+</pre></div>
+
+<p>Then, <code>,ll</code> to compile, <code>,ls</code> to forward search and double click in SumatraPDF to inverse search.</p>
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+
+        </div>
+        <div id="footer">
+          <p><a href="https://github.com/scturtle/turtleblog">turtleblog</a> &copy;
+            <script>document.write(new Date().getFullYear());</script> scturtle
+          <p> <a href="mailto:scturtle@gmail.com">mail</a>,
+            <a href="https://twitter.com/scturtle">twitter</a>,
+            <a href="https://github.com/scturtle">github</a>,
+            <a href="../atom.xml" rel="alternate" title="Recent Blogs | ScTurtle's Pool">feed</a>
+        </div>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33410961-1']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+    </body>
+</html>

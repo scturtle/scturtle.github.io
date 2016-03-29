@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>ScTurtle's Pool</title>
+    <link href="https://scturtle.me/atom.xml" rel="self" />
+    <link href="https://scturtle.me" />
+    <id>https://scturtle.me/atom.xml</id>
+    <author>
+        <name>scturtle</name>
+        <email>scturtle@gmail.com</email>
+    </author>
+    <updated>2016-01-27T00:00:00Z</updated>
+    <entry>
+    <title>Exploring Writing foldl Using foldr</title>
+    <link href="https://scturtle.me/posts/2016-01-27-foldl.html" />
+    <id>https://scturtle.me/posts/2016-01-27-foldl.html</id>
+    <published>2016-01-27T00:00:00Z</published>
+    <updated>2016-01-27T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on January 27, 2016
+   on <a href="/tags/haskell.html">haskell</a> 
+</div>
+
+<p>It is widely known that left folding can be implemented by right folding. But the implementation is not so obvious. Let’s try writing one from scratch. First, we need these two extensions of GHC to make life better.</p>
+<div class="highlight"><pre><span></span><span class="cm">{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}</span>
+</pre></div>
+
+<p>Let’s just ignore the original implementations in <code>Prelude</code> and try writing them by hand:</p>
+<div class="highlight"><pre><span></span><span class="kr">import</span> <span class="nn">Prelude</span> <span class="k">hiding</span> <span class="p">(</span><span class="nf">foldr</span><span class="p">,</span> <span class="nf">foldl</span><span class="p">)</span>
+
+<span class="nf">foldr</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldr</span> <span class="kr">_</span> <span class="n">r</span> <span class="kt">[]</span> <span class="ow">=</span> <span class="n">r</span>
+<span class="nf">foldr</span> <span class="n">f</span> <span class="n">r</span> <span class="p">(</span><span class="n">x</span><span class="kt">:</span><span class="n">xs</span><span class="p">)</span> <span class="ow">=</span> <span class="n">f</span> <span class="n">x</span> <span class="p">(</span><span class="n">foldr</span> <span class="n">f</span> <span class="n">r</span> <span class="n">xs</span><span class="p">)</span>
+
+<span class="nf">foldl</span> <span class="ow">::</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">r</span> <span class="kt">[]</span> <span class="ow">=</span> <span class="n">r</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">a</span> <span class="p">(</span><span class="n">x</span><span class="kt">:</span><span class="n">xs</span><span class="p">)</span> <span class="ow">=</span> <span class="n">foldl</span> <span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">x</span><span class="p">)</span> <span class="n">xs</span>
+</pre></div>
+
+<p>If we want to write <code>foldl</code> using <code>foldr</code>, that defination should looks like this:</p>
+<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span> <span class="n">foldr</span> <span class="n">undefined</span> <span class="n">undefined</span> <span class="n">undefined</span>
+</pre></div>
+
+<p>The only thing we can be sure is that we will still be working on list <code>bs</code>. So let’s refine the above one with this observation:</p>
+<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="kr">_</span>
+      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">undefined</span> <span class="n">undefined</span> <span class="n">bs</span>
+</pre></div>
+
+<p>Let’s think about a small example. According to our original implantation, <code>foldl f i [b1, b2]</code> should be expanded into <code>f (f i b1) b2</code> but the form in <code>foldr g j [b1, b2]</code> is <code>g b1 (b g2 j)</code>. The most important step is the definition of <code>g</code> and <code>j</code>. The function <code>g</code> should have type looks like <code>b -&gt; r -&gt; r</code> and if the first parameter is <code>b1</code>, the second parameter (<code>r</code>) should be able to use <code>f i b1</code> in itself to re-build the original <code>foldl</code> expansion. That sounds like a continuation <code>a -&gt; r</code> instead of just <code>r</code>. Let’s try this idea:</p>
+<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
+      <span class="n">g</span> <span class="ow">::</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">i</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span>
+</pre></div>
+
+<p>Bad thing happens. We get two type errors because now <code>g</code> and <code>fold</code> are of type ending with <code>(a -&gt; r)</code>. Let’s look into them one by one. For <code>g</code>, we are using a <code>b</code> to turn a continuation into another continuation. So <code>g</code> actually need a extra parameter <code>a</code>. And <code>fold</code> return a continuation and need an initial value <code>a</code> to get the final result. Let’s refine the signature and definition:</p>
+<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
+      <span class="n">g</span> <span class="ow">::</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">i</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span> <span class="n">undefined</span>
+</pre></div>
+
+<p>Now our compiler warns us that <code>a</code> is not used. According to its type, the only place to use it is where <code>i</code> is. This makes sense because we are using the future result in our computation. But where <code>i</code> should go? The only place seems to using it to complete our <code>fold</code>. (I think this is the only tricky part and hope to find better thoughts on this in the future.) Let’s refine it again:</p>
+<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
+      <span class="n">g</span> <span class="ow">::</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span> <span class="n">i</span>
+</pre></div>
+
+<p>We are almost done and only one <code>undefined</code> is left. Notice that the final result is of type <code>r</code> but our target type is <code>a</code>. That just means <code>r</code> is <code>a</code>. So the only left <code>undefined</code> is of type <code>forall a. a -&gt; a</code> and its only implantation is <code>id</code> according to parametricity. This also fits our experience with continuation by finishing it with <code>\a -&gt; a</code>. Our final version is:</p>
+<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
+<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
+  <span class="kr">let</span> <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">foldr</span> <span class="n">g</span> <span class="n">id</span> <span class="n">bs</span> <span class="n">i</span>
+</pre></div>
+
+<p>It works!</p>
+<div class="highlight"><pre><span></span><span class="nf">λ</span><span class="o">&gt;</span> <span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">r</span> <span class="n">x</span> <span class="ow">-&gt;</span> <span class="n">r</span> <span class="o">++</span> <span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="p">[</span><span class="mi">0</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">]</span> <span class="p">[</span><span class="mi">1</span> <span class="o">..</span> <span class="mi">10</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
+</pre></div>
+
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
+<entry>
+    <title>PFPL 读书笔记和闲言碎语</title>
+    <link href="https://scturtle.me/posts/2015-12-22-pfpl.html" />
+    <id>https://scturtle.me/posts/2015-12-22-pfpl.html</id>
+    <published>2015-12-22T00:00:00Z</published>
+    <updated>2015-12-22T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on December 22, 2015
+   on <a href="/tags/plt.html">plt</a> 
+</div>
+
+<p><a href="http://www.cs.cmu.edu/~rwh/plbook/1sted-revised.pdf">Practical Foundations for Programming Languages</a> 是一本介绍编程语言理论（PLT, programming language theory）和类型论（type theory）的书。 和另一本传说中的书 <a href="https://www.cis.upenn.edu/~bcpierce/tapl/">TAPL</a> 相比，更新内容也更广，不拘于一门编程语言，通篇的数学更简洁虽然也更难懂一些。 此外，在介绍的各种类型系统（type system）时，书里特意标出哪些规则是 call by name 那些是 call by value 的，很好地避免了单一一门语言对及早（eager）还是惰性求值的偏颇。 作者的大名也是不能更响，不管是第一版还是修订中的第二版都在网上放出 pdf 实属业界良心。</p>
+<p>呃说起来 PLT 范围很广，从 Lisp/Scheme 的各种奇技淫巧，到 Haskell 从范畴论借来的各种花哨术语，再到不知何年何月才足够实用的 dependent type，摆脱不了的基础便是各种类型系统（type system）和背后的类型论了。 不过就像 PLT 其实没啥用处一样，看了这本书也并不会对写代码有什么帮助。 但是这本书会把各种语言的各种特性纳入一个统一的框架（类型论）中，告诉你哪些真能提升语言的表达能力，哪些特性是扯淡的，哪些看起来很绚丽的其实是另一些特性的组合。 了解这些呢有助于避免被某些新出语言的广告词所欺骗，也可以在永无停歇的语言互黑大战获得高屋建瓴一针见血的能力。</p>
+<p>因为章节很碎（18部分，49章）,下面试图总结性地写一写，算是给自己的笔记，和近来多无所事事的交代。</p>
+<p>Preface 有一句很有意思的话，感觉开了地图炮啊233：</p>
+<blockquote>
+<p>If language design and programming methodology are to advance from a trade-craft to a rigorous discipline, it is essential that we first get the definitions right.</p>
+</blockquote>
+<p>第一部分叫做 Judgments and Rules。基本上是各种常用的定义、符号和推导形式。呃其实就是证明论（proof theory）里那堆东西拿过来又叨叨了一遍。话说 proof theory、type theory 和 category theory 这三者虽然分别来自逻辑学、计算机和数学，但是现在互相打通（<a href="https://en.wikipedia.org/wiki/Cartesian_closed_category">CCC</a>, <a href="https://en.wikipedia.org/wiki/Curry–Howard_correspondence">Curry–Howard correspondence</a>）之后来看，不得不说计算机还真是一门科学。作者本人也曾在讲座中 troll 过：</p>
+<blockquote>
+<p>Math itself is just a corner of computer science. Computer science is the queen of sciences. —— Robert Harper</p>
+</blockquote>
+<p>第二部分叫做 Statics and Dynamics。讲的是语言区分为静态部分和动态部分。 静态部分指语法和类型规则，语言在执行静态检查时会进行类型推断和检查，这时便可以剔除一些显而易见的类型错误。 动态规则指运行时如何从表达式一步一步运行得到值。 一个语言的类型系统既包括静态部分也包括动态部分，一个类型系统是否安全（type safety）也包括两个部分：preservation 和 progress。 前者要给你们看到，我静态分析这个表达式是这个类型，你动态运行每一步也是这个类型（没有特技）。 后者则是说，我静态检查通过了，你动态运行不会还没得到值就因为类型不符进行不下去了。 不过后者并不能排除除以零这种类型正确的运行时错误。 说起来静态部分做的工作越多，动态时出错的可能性也就更少，这也是为什么需要越来越高级的 type system 的原因。 不过到了 dependent type 这个地步，静态部分都不一定能停机了，还得程序员自己来证明并嵌入代码中，真的会有实用的一天么？…… 最后这里还引用了一句著名广告词233：</p>
+<blockquote>
+<p>well-typed programs do not go wrong. —— Robin Milner</p>
+</blockquote>
+<p>第三部分叫做 Total Functions，引入了函数的定义和 system T。 在第二部分第四章介绍类型系统的时候，曾引入本书的的第一个类型系统 <code>language E</code>, 包括简单的数字、字符串、几个运算函数和 let 绑定。 这里先扩展 <code>E</code> 为 <code>ED</code> 添加了简单的函数定义和函数应用。 进而，引入 <span class="math inline">\(\lambda\)</span> function 并加入函数类型作为一等公民，实现了高阶函数（higher-order function），扩展 <code>E</code> 为 <code>EF</code>。 实现 <span class="math inline">\(\lambda\)</span> function 的时候，会有作用域的问题，解释时使用替换（substitution）没问题但是没嵌套作用域（nesting scoping）的 mapping environment 会有问题。 这也是为什么实际中实现 <span class="math inline">\(\lambda\)</span> function 需要闭包（closure）的原因。</p>
+<p>System T 又叫做 Gödel’s T，只包括包括上面的高阶函数和皮亚诺（Peano）数（<code>Z, S(Z), S(S(Z))</code>……）表示的自然数和原始递归（primitive recursion），是异常简单同时也非常重要的一个类型系统。 原始递归是建立在像剥洋葱一样层层剥离皮亚诺数基础上的递归，如果参数是 Z 也就是 0 的话就返回，如果是 S(e) 就对 e 继续递归。相当于每次递归的时候参数减一，所以是一定会停机的。 这说明 T 里面只能定义 total function，也就是像纯粹的数学函数一样，对定义域的每个输入都一定会返回值，而不会像 partial function 一样在某些定义域上未定义或者在计算中陷入了死循环。 （换句话说，system T 里的递归是自带 termination proof 的。）</p>
+<p>咋一看这货根本不行啊，连一个最简单的死循环函数都写不出来啊。 文中用了的 Gödel’s encoding 和对角线法（diagonalization）那套用来证明不完备的方法，来证明 T 中确实有无法定义的函数，比如一个自身的解释器，所以说 T 并不是图灵完备的。 可以说 system T 虽然抛弃了 universality 但是获得了 totality。 咋一看图灵完备都做不到有个毛用，但是 totality 在形式证明（formal proof）中却是必要的，因为一个不停机的证明什么也说明不了。 而且在 dependent type system 中，类型可能会依赖于值，所以 totality 对于类型检查能否停机也是至关重要的。 这也是 Coq、Idris 和 Agda 这类 <a href="http://www.wikiwand.com/en/Total_functional_programming">total functional programming</a> 的基础。</p>
+<p>第四部分叫做 Finite Data Types。介绍了 product type 和 sum type 两种组合已有类型得到新类型的最基本的方法。 Product type 类比于常见的元祖（tuple）。比如（Int, String）这个类型的值的个数 = Int 的值得个数 <span class="math inline">\(\times\)</span> String 的值的个数。 那么乘法的单位元 <span class="math inline">\(\mathfrak{1}\)</span> 是什么呢？是空元祖类型也叫做 Unit，它的特点就是只有一个值 <code>()</code>。 Product type 有一个有趣的应用是可以用来实现像 odd 和 even 这种互相交叉定义的递归函数（primitive mutual recursion）。说白了就是递归时用元祖来同时计算所有函数啦。</p>
+<blockquote>
+<p>Sums codify heterogeneity.</p>
+</blockquote>
+<p>Sum type 则对应着类型“和”。比如 Haskell 里面的 <code>data Bool = True | False</code>，如果把 <code>True</code> 和 <code>False</code> 分别看做只有一个值的类型，那么 <code>Bool</code> 的值的个数就是 1+1=2。 另一个常见的 sum type 是 <code>data Maybe a = Nothing | Just a</code>（很多语言里面的 <code>option</code>），值的个数是类型 a 的值的个数加一。 “和”的单位元 <span class="math inline">\(\mathfrak{0}\)</span> 是类型 Void，其特点是……没有值，所以“加”什么还是什么。 这里的 Void 和 C/C++ 里面的 void 是不同的，后者其实是前面提到的 Unit，而前者没有任何值所以既不能被当做参数也不能被当做返回值（正常情况下……）。 <!-- “null pointer fallacy” 不再赘述。 --></p>
+<p>第五部分是 Types and Propositions。说的是 constructive logic（构造性逻辑，又叫 <a href="https://en.wikipedia.org/wiki/Intuitionistic_logic">intuitionistic logic</a>，直觉主义逻辑）和 <a href="https://en.wikipedia.org/wiki/Classical_logic">classical logic</a>（经典逻辑）之间的恩怨纠葛。 经典逻辑是我们熟悉的形式逻辑，包括命题为真，为假，和 <span class="math inline">\(\top\)</span> (truth), <span class="math inline">\(\bot\)</span> (falsity), <span class="math inline">\(\vee\)</span> (or), <span class="math inline">\(\wedge\)</span> (and), <span class="math inline">\(\subset\)</span> (imply)。 经典逻辑中任一命题要么为真要么为假，没有中间状态，叫做排中律（LEM, <a href="https://en.wikipedia.org/wiki/Law_of_excluded_middle">law of the excluded middle</a>），表示为 <span class="math inline">\(P \vee \neg P\ true\)</span>。</p>
+<blockquote>
+<p>Constructive logic codiﬁes the principles of mathematical reasoning as it is actually practiced.</p>
+</blockquote>
+<p>构造性逻辑则拿掉了排中律，命题为真必须给出证明，为假则必须给出反驳，两者都必须构建在一个又一个的证明或者反驳之上。 比如，虽然我们知道要么 <span class="math inline">\(P = NP\)</span> 要么 <span class="math inline">\(P \neq NP\)</span>，但是我们目前既不能给出前者的证明也给不出后者的证明（来反驳前者），所以不能用这两个证明中的任意一个来构建一个 <span class="math inline">\(\vee\)</span>。 这样的好处是，构造性逻辑能更好地反映现实中的数学推理，现实中总是充满了各种未解决的问题，像 <span class="math inline">\(P \stackrel{?}{=} NP\)</span> 这种目前还只有上帝才知道，还是留给他老人家来用吧。</p>
+<blockquote>
+<p>There is no guarantee of success! Life is hard, but we muddle through somehow.</p>
+</blockquote>
+<p>另一方面，证明的构造性和计算机程序有着极其相似的结构，一个表达式对于一个特定的类型来说就像一个证明对于命题一样重要。 这种逻辑和程序奇妙的统一性叫做“propositions as type”。具体表现为：<span class="math inline">\(\top\)</span> 和 Unit，<span class="math inline">\(\bot\)</span> 和 Void，<span class="math inline">\(\wedge\)</span> 和 product，<span class="math inline">\(\vee\)</span> 和 sum，<span class="math inline">\(\subset\)</span> 和 <span class="math inline">\(\lambda\)</span> 分别是一一对应的。 一个命题对应一个类型，一个证明对应一个程序，又叫做 <a href="https://en.wikipedia.org/wiki/Curry–Howard_correspondence">Curry-Howard correspondence</a>。</p>
+<p>看似从经典逻辑中拿掉了不切实际的排中律，可以建立起逻辑和计算机之间深刻的联系，却必须以牺牲表达能力为代价，实际上并不是！ 可以证明的是构造性逻辑 <em>不拒绝</em> 排中律。在需要的时候可以将特定命题的排中律拿来当假设用，所以经典逻辑完全可以在构造性逻辑中表达，只是不能随便开上帝模式了。 Mind blown! 后面还会继续出现这种 less is more 的栗子。</p>
+<blockquote>
+<p>In programming language terms adding a “feature” does not necessarily strengthen (improve the expressive power) of your language; on the contrary, it may weaken it.</p>
+</blockquote>
+<p>第六部分为 Infinite Data Types。 Generic programming 这章简单引入了带类型变量的 类型 <span class="math inline">\(t.\tau\)</span>，叫做 polymorphic type operator。 其中 <span class="math inline">\(\tau\)</span> 是由 <span class="math inline">\(t\)</span> 和 void/unit/product/sum 组合的类型。 值得注意的是在扩展 <span class="math inline">\(\tau\)</span> 到函数时（<span class="math inline">\(t.\ \tau_1 \rightarrow \tau_2\)</span>），需要保证 positivity 也就是 t 不能出现在定义域的位置（<span class="math inline">\(\tau_1\)</span>），这种扩展和限制叫做 positive type operators。 其实这说的也就是 functor 和 fmap，引入这几个抽象概念是为了方便随后定义两种递归类型。</p>
+<p>从名字就可以看出 Inductive types 和 coinductive types 是两个互为 dual 的概念。 前者定义在引进规则（introduction forms）上的，呃，就是定义在“怎么定义”上…… 以其为参数的递归函数的一般形式（catamorphism）是先递归再替换。 举例来说皮亚诺数，每一个值要么是零要么是另一个值的后继。而参数是皮亚诺数的递归函数先在前驱上递归计算，再计算当前数上的值。 而 coindoctive types 定义在消除规则（elimination forms）上，嗯……算是“怎么来用”上…… 以其为参数的的递归函数的一般形式（anamorphism）也相反，是先替换再递归。 通常拿来举的例子是一个无限的数据流（stream），比如斐波那契数列，每一项都是前两项的和，必须先计算完数列前面的值才能得到后面的值的数列。 如果说 inductive types 的函数更像传统意义上的递归函数（recursor）的话，那么 coinduvtive types 的函数则更像是根据指定规则的一个产生器（generator）。</p>
+<p>这是两种最典型的递归形式（recursion scheme），区分它们的必要性在于，他们是同一个（关于 positive type operator 的）类型等式（type equations）的两个极端解（类型）。 例如 <span class="math inline">\(x = 1 \times x\)</span> 的 inductive/coinductive type 解分别是上面提到过的皮亚诺数和 infinity。 理论上来说 inductive types 是类型等式的最小解（smallest/least/most restrictive），而 coinductive types 是最大解（largest/greatest/most permissive）。 另一种对称性在于，前者虽然有无限个值，但是每一个值都是在有限步内构造的；而后者则构造了一个无限的序列，在有限步内析构会得到有限个值。 从刚才的例子还可以看出，假若不加区分的将一个前者的函数应用在后者上，就引发了死循环，所以强调 totality 的 Idris、Agda 等语言中显式地区分这两种概念。 从两者函数行为的区别上也可以看出，支持惰性求值才能支持先替换后递归，这也是为什么 Haskell 里面能这么简单实现无限序列的缘故。 （逼逼了这么多跟懂的似的不过下面这句话我到现在还不是很理解……）</p>
+<blockquote>
+<p>Inductive types are initial algebras and coinductive types are ﬁnal coalgebras for the functor given by a (polynomial or positive) type operator.</p>
+</blockquote>
+<p>第七部分叫做 Variable Types。 首先在 T 的基础上，引入了前一部分提到的类型变量和多态，得到 language F，也常常叫做 system F。 总的来说 system F 就是 <em>polymorphic</em> typed lambda-calculus。 多态（polymorphism）相比 OOP 里面那个含义更像 C++ 的模板系统，把类型无关的相似行为抽象出来，避免冗余代码。 比如 <code>id :: forall a. a -&gt; a</code>，不管输入是啥类型，给啥返回啥就好了。 多态大大地扩展了语言的表达能力，可以证明，前面提到过的 products/sums/inductive/coinductive types 都可以用多态函数来表示，这种表示法通常叫做 <a href="https://en.wikipedia.org/wiki/Church_encoding">Church encoding</a>，是丘奇为了证明他的<span class="math inline">\(\lambda\)</span>演算的计算能力发明的。 例如自然数可以表示成 <span class="math inline">\(\forall t.t \rightarrow (t \rightarrow t) \rightarrow t\)</span>，叫做<a href="https://zh.wikipedia.org/zh-hans/%E9%82%B1%E5%A5%87%E6%95%B0">丘奇数</a>。 不过多态的表达能力太过强大，已被证明，没有类型注释的 system F 的类型检查是 undecidable 的问题。 但是如果稍稍限制 <code>forall</code> 出现的位置，得到一个弱一点的 <a href="https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system">“Hindley–Milner”</a> 类型系统，甚至有高效的类型推断算法，是为 PLT 的经典算法之一。</p>
+<p>注意到在 T 中自然数必须用皮亚诺表示法“硬编码”，这说明，F 至少和 T 的表达能力是一样的。 可以证明的是，虽然 T 的 evaluation function 不能在自身中实现，但是可以在 F 中实现，这说明 F 的表达能力是比 T 高的。 还可以证明 F 是强规范化的（strongly normalizing），也就是像 T 一样 terminating 的，所以 F 的 evaluation function 也不能用自身写出。 我们可以扩充 F 得到一个可以实现 F 的更强的语言，还可以进一步扩充这个语言得到更强一点的语言，但是只要是这些更强的语言都还是 terminating 的就还是不能实现自举（呃好像被最新的这篇 <a href="http://compilers.cs.ucla.edu/popl16/">paper</a> 打了脸，也就是说自举并不需要完备？）。 可以看出，虽然图灵完备的语言是相通的，图灵不完备的却有着表达能力阶层。</p>
+<p>多态类型看似有着级大的自由度，实际上却很大程度上限制了其实现，这种特性叫做 parametricity，个人认为算是 PLT 里面最有意思的东西之一。 比如 <code>int -&gt; int</code> 这个函数可以有无数种实现，加一减一阶乘等等等等，但是一旦把类型抽象出来得到 <code>forall a. a -&gt; a</code>，要求其对所有类型 <code>a</code> 都适用，便只有 identity function <code>id</code> 这一种实现了。 这个函数签名可以读作“无论给一个什么东西（<code>a</code>），都得返回一个和这个东西 <em>所有性质</em>（of <code>a</code>）完全相同的东西”，所以只有直接返回一条路。 再一个例子是 <code>forall a. a -&gt; a -&gt; a</code>，给两个相同类型的参数返回相同类型的结果，可以证明的是只有返回第一个或者第二个两种实现。 看似极大自由 <code>forall</code> 却限制得连用 <code>if</code> 做个选择都不行。 更复杂的多态类型其性质的推导也更加复杂，本书倒数第二章详述了其后的理论，这里的<a href="http://www.well-typed.com/blog/2015/05/parametricity/">两篇实用的文章</a>比较容易入门。可以说，parametricity 才是类型系统确保程序正确性的根基：</p>
+<blockquote>
+<p>Parametricity narrows the space of well-typed programs sufﬁciently that the opportunities for programmer error are reduced to almost nothing.</p>
+</blockquote>
+<p>前面列举的类型中大量使用了 <code>forall</code>，如果将 polymorphic types 看成 universal types 的话，那么接下来的一章介绍的 existential types 算是其 dual 的概念了。 用文中常用的句型来说：Existential types <em>codify</em> data abstraction. 比如队列这个抽象类型可以有各种具体实现类型，每一种实现都可以看做队列的一种具体化的存在，可以拿来直接用。 实际上就是把实现和接口一块“打了个包”，要求的是接口的类型，用的时候实际上拿具体实现的类型和表达式做替换。 <!-- 值得注意的是 data abstraction 的打包和替换都是在编译阶段完成的，没有运行时消耗。 --> 看似 existential types 是 universal types 的 dual，其实 existential types 是完全可以用 universal types 来定义的！ 这一章扩展了 F 得到 FE，并没有实际增加表达能力。</p>
+<p>Type 也可以有 type，叫做 kind，前面提过的各种类型的 kind 可以看做 <code>*</code>，那么 type constructor 就是类型之上的函数，通过类型来构造新的类型，它的 kind 就是 <code>* -&gt; *</code>。 例如 <code>Maybe</code> 和 <code>[]</code>(list) 的 kind 是 <code>* -&gt; *</code> ，因为他们都需要指定一个元素类型，而 <code>Either</code> 的 kind 是 <code>* -&gt; * -&gt; *</code>。 接下来的一章扩展 F 加入 universal/existential quantifier 和 kind 得到 <span class="math inline">\(F_\omega\)</span>。 因为 type constructor 涉及类型层面上的 <span class="math inline">\(\lambda\)</span>-abstract 和 application，所以需要定义 definitional equality 来简化类型（类似 <span class="math inline">\(\beta\)</span>-reduction）。 在 <span class="math inline">\(F_\omega\)</span> 的基础上，加上类型层面的存在量词就是 <span class="math inline">\(FE_\omega\)</span>，不过不知道这东西有啥用…… <span class="math inline">\(F_\omega\)</span> 的表达能力很强大，是各种现代编译器的基础，人称 “the workhorse of modern compilers”，Haskell 的 type class、Ocaml 的 module system 甚至 GADT 都可以用它表示出来。 但是实际中也得加很多限制才能得到高效实用的算法。</p>
+<p>第八部分是 Partiality and Recursive Types。 第十九章介绍了 <a href="https://en.wikipedia.org/wiki/Programming_Computable_Functions">system PCF</a>，最简单的图灵完备的类型系统，人称 “the E. coli of programming languages”。 System PCF 的表达能力来自 general recursion 和 partiality。 比如阶乘函数可以看做 fact(0)= 1 和 fact(n+1) = (n+1) * fact(n) 这两个等式的解 fact :: Nat -&gt; Nat，这个解可以通过不动点来求得。 假设我们已经有 fact 这个解了，那么我们可以写这么一个辅助函数： f(fact) = <span class="math inline">\(\lambda\)</span> n -&gt; if n == 0 then 1 else n * fact(n-1)。 显然等式 fact = f(fact) 成立，假设我们有一个求函数不动点的函数 fix，那么 fact = fix(f)。 为何不动点就是我们要的解呢？ 因为 PCF 里面的函数是 partial 的，允许函数在有的输入上未定义（发散/不终止），所以我们可以先试着传给 f 一个非常垃圾的解，比如一个在所有输入上都不终止的函数 <span class="math inline">\(\phi\)</span>。 神奇的事情发生了！<span class="math inline">\(\phi&#39;\)</span> = f(<span class="math inline">\(\phi\)</span>) 在 0 这个 base case 上不依赖于 <span class="math inline">\(\phi\)</span> 返回了结果 1，虽然在其他输入上还是发散了。 按照不动点的含义，我们再把 <span class="math inline">\(\phi&#39;\)</span> 喂给 f 得到 <span class="math inline">\(\phi&#39;&#39;\)</span> = f(<span class="math inline">\(\phi&#39;\)</span>) = f(f(<span class="math inline">\(\phi\)</span>))。 神奇的事情再次发生了！因为 <span class="math inline">\(\phi&#39;\)</span> 在 0 上有了定义，现在 <span class="math inline">\(\phi&#39;&#39;\)</span> 在 1 上也有了定义。 因为 base case 的存在，我们就像求不动点一样不断把更好地解传给 f，就可以不断逼近一个我们想要的 total function。 实际中 fix 函数的实现也是异曲同工。</p>
+<p>可以证明的是 PCF 可实现所有 <a href="https://en.wikipedia.org/wiki/%CE%9C-recursive_function">partial recursive functions</a>（主要是可以实现 minimization/<span class="math inline">\(\mu\)</span> operation），而且 PCF 自身的 evaluator 也可以用 partial recursive functions 来表示，可见 PCF 是自举的。 由<a href="https://en.wikipedia.org/wiki/Computable_function#Definition">等价性</a>可知 PCF 是和图灵机/lambda calculus 等价的。 前面提过 T 中程序的终止的证明是“编码”进代码和类型检查中的，可想而知而有了 partial functions 抛弃了 totality 之后，写能通过类型检查的程序也更简单了。 甚至有一个定理 <a href="https://en.wikipedia.org/wiki/Blum%27s_speedup_theorem">Blum Size Theorem</a> 指出，总存在一个函数在任何 total 的语言中的最短实现是 PCF 中的最短实现的 <em>任意多倍</em>。</p>
+<p>下一章介绍了递归类型（recursive types），扩展 PCF 得到 FPC（这两名字为什么这么像？）。 我们熟悉的 list 啊 tree 啊这些都是典型的递归类型。 递归类型和前述的 inductive/coinductive types 定义几乎相同，只是拿掉了 positivity 限制。 前面提过 inductive/coinductive types 可以看做是 positive 的类型等式的解，那么递归类型则是拿掉了 positivity 限制的类型等式的解。 但是去掉了限制后解不一定存在，所以递归类型算是一种不动点近似解，也是唯一解，前述的 inductive/coinductive 之分体现在对递归类型的及早/惰性求值上。 这里十分不解的是作者说用很大的篇幅说及早求值比惰性求值表达能力要高，因为前者能表示用函数来表示后者，而后者不能表示前者？谨慎持异议…… 此外，前述的通用递归（general recursion）可以用递归类型表示出来，因为两者都是靠的自指（self-reference），所以扩充语言表达能力的不是语言特性，最终还是类型。</p>
+<p>(待续……)</p>
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
+<entry>
+    <title>Yoneda Lemma Explained in Haskell</title>
+    <link href="https://scturtle.me/posts/2015-06-16-yoneda.html" />
+    <id>https://scturtle.me/posts/2015-06-16-yoneda.html</id>
+    <published>2015-06-16T00:00:00Z</published>
+    <updated>2015-06-16T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on June 16, 2015
+   on <a href="/tags/haskell.html">haskell</a> 
+</div>
+
+<blockquote>
+<p>When you need something to go faster, hit it with the Yoneda lemma. Still isn’t fast enough? Use it again. —— <a href="https://twitter.com/kmett/status/546533863636627456">Edward Kmett</a></p>
+</blockquote>
+<p><a href="https://en.wikipedia.org/wiki/Yoneda_lemma">Yoneda lemma</a> may be the first understanding challenge in category theory. For an arbitrary functor <span class="math inline">\(F\)</span> from a category <span class="math inline">\(C\)</span> to the category <span class="math inline">\(Set\)</span>, Yoneda lemma says: for any object <span class="math inline">\(A\)</span> of <span class="math inline">\(C\)</span>, the natural transformations from the <a href="http://ncatlab.org/nlab/show/hom-functor">hom-functor</a> <span class="math inline">\(h_A\)</span> to <span class="math inline">\(F\)</span> are in one-to-one correspondence with the elements in <span class="math inline">\(F(A)\)</span>. That’s is,</p>
+<p><span class="math display">\[ \mathrm{Nat}(h_A,F) \cong F(A). \]</span></p>
+<p>Doesn’t it hurt your brain? The proof is even more tedious. In another way, however, it just states that every object can be determined by how other objects map into it. The interesting thing is, once translated into Haskell, the Yoneda lemma becomes more readable and understandable.</p>
+<p>In Haskell the category <span class="math inline">\(C\)</span> and <span class="math inline">\(Set\)</span> are both <span class="math inline">\(Hask\)</span>, the category of all types in Haskell. And a natural transformation is just a polynomial function which, in this case, from functor <code>(-&gt;) a</code> to functor <code>f</code>. So in Haskell we can write Yoneda lemma as</p>
+<div class ="highlight"><pre>(forall b. (a -> b) -> f b) ~ f a</pre></div>
+<p>which means an isomorphism between a polynomial function and a type. This can be interpreted in the following way: for a fixed type <code>a</code> and a functor <code>f</code>, if there is a polynomial function <code>g</code> that knows how to convert any <code>a -&gt; b</code> into <code>f b</code>, then this <code>g</code> is just something holding a <code>f a</code> (and remembering to <code>fmap</code> any <code>a -&gt; b</code> on it), and vice versa.</p>
+<p>To prove this isomorphism, we need to show that for the following two conversion functions:</p>
+<div class="highlight"><pre><span></span><span class="nf">fw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">a</span>
+<span class="nf">fw</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">f</span> <span class="n">id</span>
+
+<span class="nf">bw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="n">f</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span>
+<span class="nf">bw</span> <span class="n">x</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">fmap</span> <span class="n">f</span> <span class="n">x</span>
+</pre></div>
+
+<p>the following two statements are both true:</p>
+<div class ="highlight"><pre>fw . bw = id
+bw . fw = id</pre></div>
+<p>The first one is easy:</p>
+<div class ="highlight"><pre>(fw . bw) fa
+= fw (bw fa)
+= (bw fa) id
+= bw fa id
+= fmap id fa
+= fa</pre></div>
+<p>and there are two steps notable in the second proof:</p>
+<div class ="highlight"><pre>bw (fw g) a2b
+= fmap a2b (g id)
+= g (fmap a2b id) (*)
+= g (a2b . id)    (**)
+= g a2b</pre></div>
+<p>In <code>(*)</code> we swap <code>g</code> and <code>fmap a2b</code> when apply them to <code>id</code> in sequence. This is because the <code>forall</code> in the polynomial function <code>g</code> makes it a natural transformation from functor <code>(-&gt; a)</code> to functor <code>f</code> and ensure that the following diagram commute:</p>
+<div class ="highlight"><pre>                  g
+      (a -> b) --------> f b
+         ^                ^
+         |                |
+fmap a2b |                | fmap a2b
+         |                |
+         |                |
+      (a -> a) --------> f a
+                  g</pre></div>
+<p>Commutation means the both ways from bottom left to top right are the same. So we can swap <code>g</code> and <code>fmap a2b</code>. Also notice that the bottom left is just <code>id</code>. The <code>(**)</code> step is an application of the <code>fmap</code> definition of functor <code>(-&gt; a)</code>, which is just function composition <code>(.)</code>. QED.</p>
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
+<entry>
+    <title>字符串搜索的 Horspool 算法</title>
+    <link href="https://scturtle.me/posts/2015-03-14-horspool.html" />
+    <id>https://scturtle.me/posts/2015-03-14-horspool.html</id>
+    <published>2015-03-14T00:00:00Z</published>
+    <updated>2015-03-14T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on March 14, 2015
+   on <a href="/tags/algo.html">algo</a> 
+</div>
+
+<blockquote>
+<p>当你要手写一个字符串搜索算法，你会写什么？</p>
+</blockquote>
+<p>本文将要介绍的 Horspool 算法简单又不慢，一看就懂，一学就会，一写就过！</p>
+<p>假设我们要在一个叫 haystack 的字符串中搜索另一个叫 needle 的字符串。先对齐，从后往前搜到某个不匹配的字符：</p>
+<pre>
+ab<font color=red>c</font><font color=green>bab</font>ababab
+cb<font color=red>a</font><font color=green>bab</font>
+</pre>
+<p>我们可以把 needle 右移一位然后重新从最后一个开始匹配，这是最朴素的算法。但是我们可不可以多移几位呢？我们看 haystack 中的第三个 b，一个策略是移动 needle 使得这个 b 和 needle 里倒数第二个 b 对齐来，这样 needle 移了两个位置。</p>
+<pre>
+abcba<font color=green>b</font>ababab
+  cba<font color=green>b</font>ab
+</pre>
+<p>needle 里第一个 b 不行，因为会错过解；最后一个 b 也不行，因为 needle 没有动。所以除了 needle 里最后一个位置之外，倒数第一个配对的字符才是正确的选择。</p>
+<p>所以我们知道如何预处理一下 needle，记录 <strong>needle 每个字符的倒数第一次出现的位置(末尾除外)离 needle 末尾的距离</strong>，来作为跳转步数。不在 needle 里出现的字符对应的跳转步数则为 |needle|。哎呀这个岂不很好写的：</p>
+<div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">UCHAR_MAX</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">UCHAR_MAX</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="n">jmp_table</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nlen</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">last</span> <span class="o">=</span> <span class="n">nlen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">last</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="n">jmp_table</span><span class="p">[</span><span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
+</pre></div>
+
+<p>好了现在我们知道，每次出现不匹配时，找到 haystack 里和 needle 对应的最后一个字符，再在 needle 里找它倒数第一次出现的位置(末尾除外)，然后把它们对齐。就是这么简单。</p>
+<p>完整的 C++ 代码：</p>
+<div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">horspool</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">haystack</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">needle</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">hlen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">haystack</span><span class="p">),</span> <span class="n">nlen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">needle</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">UCHAR_MAX</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">UCHAR_MAX</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">jmp_table</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nlen</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">last</span> <span class="o">=</span> <span class="n">nlen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">last</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">jmp_table</span><span class="p">[</span><span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">while</span><span class="p">(</span><span class="n">j</span> <span class="o">&lt;=</span> <span class="n">hlen</span> <span class="o">-</span> <span class="n">nlen</span><span class="p">){</span>
+    <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">haystack</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">last</span><span class="p">];</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">last</span><span class="p">;</span>
+    <span class="k">while</span><span class="p">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">haystack</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">--</span><span class="n">i</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">return</span> <span class="n">j</span><span class="p">;</span>
+    <span class="n">j</span> <span class="o">+=</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">c</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>简单到 Haskell 的也很好写哇：</p>
+<div class="highlight"><pre><span></span><span class="cm">{-# LANGUAGE OverloadedStrings #-}</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Data.Map</span> <span class="k">as</span> <span class="n">M</span> <span class="p">(</span><span class="n">findWithDefault</span><span class="p">,</span> <span class="n">fromList</span><span class="p">)</span>
+<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Data.ByteString</span> <span class="k">as</span> <span class="n">BS</span>
+
+<span class="nf">horspool</span> <span class="ow">::</span> <span class="kt">BS</span><span class="o">.</span><span class="kt">ByteString</span> <span class="ow">-&gt;</span> <span class="kt">BS</span><span class="o">.</span><span class="kt">ByteString</span> <span class="ow">-&gt;</span> <span class="kt">Maybe</span> <span class="kt">Int</span>
+<span class="nf">horspool</span> <span class="n">s</span> <span class="n">p</span> <span class="ow">=</span> <span class="n">f</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="kr">where</span> <span class="n">lenp</span> <span class="ow">=</span> <span class="kt">BS</span><span class="o">.</span><span class="n">length</span> <span class="n">p</span>
+        <span class="n">lens</span> <span class="ow">=</span> <span class="kt">BS</span><span class="o">.</span><span class="n">length</span> <span class="n">s</span>
+        <span class="n">jmptbl</span> <span class="ow">=</span> <span class="kt">M</span><span class="o">.</span><span class="n">fromList</span> <span class="o">$</span> <span class="n">zip</span> <span class="p">(</span><span class="kt">BS</span><span class="o">.</span><span class="n">unpack</span> <span class="n">p</span><span class="p">)</span> <span class="p">[</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">lenp</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">..</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">jmp</span> <span class="n">x</span> <span class="ow">=</span> <span class="kt">M</span><span class="o">.</span><span class="n">findWithDefault</span> <span class="n">lenp</span> <span class="n">x</span> <span class="n">jmptbl</span>
+        <span class="n">f</span> <span class="n">i</span> <span class="n">j</span> <span class="n">k</span>
+          <span class="o">|</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">lens</span> <span class="ow">=</span> <span class="kt">Nothing</span>
+          <span class="o">|</span> <span class="n">j</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">=</span> <span class="kt">Just</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+          <span class="o">|</span> <span class="n">s</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">i</span> <span class="o">==</span> <span class="n">p</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">j</span> <span class="ow">=</span> <span class="n">f</span> <span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">k</span>
+          <span class="o">|</span> <span class="n">otherwise</span> <span class="ow">=</span> <span class="kr">let</span> <span class="n">k&#39;</span> <span class="ow">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">jmp</span> <span class="p">(</span><span class="n">s</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">k</span><span class="p">)</span>
+                         <span class="kr">in</span> <span class="n">f</span> <span class="n">k&#39;</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="n">k&#39;</span>
+
+<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
+<span class="nf">main</span> <span class="ow">=</span> <span class="n">print</span> <span class="o">$</span> <span class="n">horspool</span> <span class="s">&quot;abcbabababab&quot;</span> <span class="s">&quot;cbabab&quot;</span>
+</pre></div>
+
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
+<entry>
+    <title>用 Coq 来证明“今天”是周几</title>
+    <link href="https://scturtle.me/posts/2015-01-30-coq-which-day.html" />
+    <id>https://scturtle.me/posts/2015-01-30-coq-which-day.html</id>
+    <published>2015-01-30T00:00:00Z</published>
+    <updated>2015-01-30T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on January 30, 2015
+   on <a href="/tags/other.html">other</a> 
+</div>
+
+<p>据说最近有道逻辑题在微博上挺火的：</p>
+<blockquote>
+<p>如果昨天是明天的话就好了，这样今天就是周五了。 句中今天是周几？</p>
+</blockquote>
+<del>
+居然还有争议？当然是周三啊摔！
+</del>
+<p>好吧，脑洞打开的话，确实可以有另一种理解。 拿 <a href="http://zh.wikipedia.org/zh/Coq">Coq</a> 来证明下：</p>
+<p>星期几的定义：</p>
+<div class="highlight"><pre><span></span><span class="kn">Inductive</span> <span class="n">day</span> <span class="o">:</span> <span class="kt">Type</span> <span class="o">:=</span>
+  <span class="o">|</span> <span class="n">monday</span> <span class="o">:</span> <span class="n">day</span>
+  <span class="o">|</span> <span class="n">tuesday</span> <span class="o">:</span> <span class="n">day</span>
+  <span class="o">|</span> <span class="n">wednesday</span> <span class="o">:</span> <span class="n">day</span>
+  <span class="o">|</span> <span class="n">thursday</span> <span class="o">:</span> <span class="n">day</span>
+  <span class="o">|</span> <span class="n">friday</span> <span class="o">:</span> <span class="n">day</span>
+  <span class="o">|</span> <span class="n">saturday</span> <span class="o">:</span> <span class="n">day</span>
+  <span class="o">|</span> <span class="n">sunday</span> <span class="o">:</span> <span class="n">day</span><span class="o">.</span>
+</pre></div>
+
+<p>昨天和明天的定义其实都是函数（更严格来说应该是双射，不过足够了）：</p>
+<div class="highlight"><pre><span></span><span class="kn">Definition</span> <span class="n">next</span> <span class="o">(</span><span class="n">d</span><span class="o">:</span><span class="n">day</span><span class="o">)</span> <span class="o">:</span> <span class="n">day</span> <span class="o">:=</span>
+  <span class="k">match</span> <span class="n">d</span> <span class="k">with</span>
+  <span class="o">|</span> <span class="n">monday</span>    <span class="o">=&gt;</span> <span class="n">tuesday</span>
+  <span class="o">|</span> <span class="n">tuesday</span>   <span class="o">=&gt;</span> <span class="n">wednesday</span>
+  <span class="o">|</span> <span class="n">wednesday</span> <span class="o">=&gt;</span> <span class="n">thursday</span>
+  <span class="o">|</span> <span class="n">thursday</span>  <span class="o">=&gt;</span> <span class="n">friday</span>
+  <span class="o">|</span> <span class="n">friday</span>    <span class="o">=&gt;</span> <span class="n">saturday</span>
+  <span class="o">|</span> <span class="n">saturday</span>  <span class="o">=&gt;</span> <span class="n">sunday</span>
+  <span class="o">|</span> <span class="n">sunday</span>    <span class="o">=&gt;</span> <span class="n">monday</span>
+  <span class="k">end</span><span class="o">.</span>
+
+<span class="kn">Definition</span> <span class="n">prev</span> <span class="o">(</span><span class="n">d</span><span class="o">:</span><span class="n">day</span><span class="o">)</span> <span class="o">:</span> <span class="n">day</span> <span class="o">:=</span>
+  <span class="k">match</span> <span class="n">d</span> <span class="k">with</span>
+  <span class="o">|</span> <span class="n">monday</span>    <span class="o">=&gt;</span> <span class="n">sunday</span>
+  <span class="o">|</span> <span class="n">tuesday</span>   <span class="o">=&gt;</span> <span class="n">monday</span>
+  <span class="o">|</span> <span class="n">wednesday</span> <span class="o">=&gt;</span> <span class="n">tuesday</span>
+  <span class="o">|</span> <span class="n">thursday</span>  <span class="o">=&gt;</span> <span class="n">wednesday</span>
+  <span class="o">|</span> <span class="n">friday</span>    <span class="o">=&gt;</span> <span class="n">thursday</span>
+  <span class="o">|</span> <span class="n">saturday</span>  <span class="o">=&gt;</span> <span class="n">friday</span>
+  <span class="o">|</span> <span class="n">sunday</span>    <span class="o">=&gt;</span> <span class="n">saturday</span>
+  <span class="k">end</span><span class="o">.</span>
+</pre></div>
+
+<p>开始证明。因为数学上不可能有 <code>昨天 = 明天</code>，所以实际上可以存在两种理解：<br />
+<code>(想象中今天的)昨天 = (实际的今天的)明天</code> 和 <code>(实际今天的)昨天 = (想象中今天的)明天</code>。</p>
+<p>第一种比较符合多数人的理解：</p>
+<div class="highlight"><pre><span></span><span class="kn">Lemma</span> <span class="n">today_is_wednesday</span> <span class="o">:</span>
+  <span class="k">forall</span> <span class="n">today</span> <span class="n">real_today</span><span class="o">,</span>
+  <span class="c">(* (想象中今天的)昨天 = (实际的今天的)明天 *)</span>
+    <span class="n">prev</span> <span class="n">today</span> <span class="o">=</span> <span class="n">next</span> <span class="n">real_today</span> <span class="o">-&gt;</span>
+  <span class="c">(* (想象中的)今天 = 星期五 *)</span>
+    <span class="n">today</span> <span class="o">=</span> <span class="n">friday</span> <span class="o">-&gt;</span>
+  <span class="c">(* 那么，(实际的)今天 = 星期三 *)</span>
+    <span class="n">real_today</span> <span class="o">=</span> <span class="n">wednesday</span><span class="o">.</span>
+<span class="kn">Proof</span><span class="o">.</span>
+  <span class="k">intros</span><span class="o">.</span> <span class="k">subst</span><span class="o">.</span> <span class="k">destruct</span> <span class="n">real_today</span><span class="o">;</span> <span class="k">inversion</span> <span class="n">H</span><span class="o">.</span> <span class="kp">reflexivity</span><span class="o">.</span>
+<span class="kn">Qed</span><span class="o">.</span>
+</pre></div>
+
+<p>第二种脑洞打开的话也不是完全没有道理……</p>
+<div class="highlight"><pre><span></span><span class="kn">Lemma</span> <span class="n">today_is_sunday</span> <span class="o">:</span>
+  <span class="k">forall</span> <span class="n">today</span> <span class="n">real_today</span><span class="o">,</span>
+  <span class="c">(* (实际的今天的)昨天 = (想象中今天的)明天 *)</span>
+    <span class="n">prev</span> <span class="n">real_today</span> <span class="o">=</span> <span class="n">next</span> <span class="n">today</span> <span class="o">-&gt;</span>
+  <span class="c">(* (想象中的)今天 = 星期五 *)</span>
+    <span class="n">today</span> <span class="o">=</span> <span class="n">friday</span> <span class="o">-&gt;</span>
+  <span class="c">(* 那么，(实际的)今天 = 星期日 *)</span>
+    <span class="n">real_today</span> <span class="o">=</span> <span class="n">sunday</span><span class="o">.</span>
+
+<span class="kn">Proof</span><span class="o">.</span>
+  <span class="k">intros</span><span class="o">.</span> <span class="k">subst</span><span class="o">.</span> <span class="k">destruct</span> <span class="n">real_today</span><span class="o">;</span> <span class="k">inversion</span> <span class="n">H</span><span class="o">.</span> <span class="kp">reflexivity</span><span class="o">.</span>
+<span class="kn">Qed</span><span class="o">.</span>
+</pre></div>
+
+<p>证明对 Coq 来说很简单，基本上就是枚举所有可能性，要么成立要么反证法什么的，就不赘述了。</p>
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
+<entry>
+    <title>Play 0hh1.com with PyAutoGUI</title>
+    <link href="https://scturtle.me/posts/2014-12-23-auto-0hh1.html" />
+    <id>https://scturtle.me/posts/2014-12-23-auto-0hh1.html</id>
+    <published>2014-12-23T00:00:00Z</published>
+    <updated>2014-12-23T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on December 23, 2014
+   on <a href="/tags/python.html">python</a> 
+</div>
+
+<p><img src="https://dl.dropboxusercontent.com/u/1551217/0hh1.gif" style="max-width:480px;"/></p>
+<p>Inspired by <a href="http://inventwithpython.com/blog/2014/12/17/programming-a-bot-to-play-the-sushi-go-round-flash-game/">this blog</a>.</p>
+<p>Much simpler example showing how to play <a href="http://0hh1.com">0hh1.com</a>(simple game like 2048) with <a href="https://pyautogui.readthedocs.org/en/latest/">PyAutoGUI</a>.</p>
+<p>Code is <a href="https://gist.github.com/scturtle/9403534f32ff7a95dd3f">here</a>.</p>
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
+<entry>
+    <title>SVM with Stochastic Gradient Descent</title>
+    <link href="https://scturtle.me/posts/2014-12-18-svm-sgd.html" />
+    <id>https://scturtle.me/posts/2014-12-18-svm-sgd.html</id>
+    <published>2014-12-18T00:00:00Z</published>
+    <updated>2014-12-18T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on December 18, 2014
+   on <a href="/tags/python.html">python</a> 
+</div>
+
+ <iframe src="https://render.githubusercontent.com/view/ipynb?enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f676973742f7363747572746c652f31353064306563623533613061303165633433632f7261772f616230306264373962373332653362663364303666393237633835626166666633356363363064352f73766d5f7367642e6970796e62#eb17f0b3-4040-4ac9-a078-396645a3faf9" frameborder="0" width="100%" style="display: block; height: 1550px;">Viewer requires iframe.</iframe>
+
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
+
+</feed>
