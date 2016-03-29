@@ -1,38 +1,40 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>ScTurtle's Pool  - Turtleblog 的配置 </title>
-        <link rel="shortcut icon" href="../images/favicon.png" />
-        <link rel="stylesheet" type="text/css" href="../asserts/default.css" />
-        <link rel="stylesheet" type="text/css" href="../asserts/pygments.css" />
-        <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
-    </head>
-    <body>
-        <div id="header">
-            <div id="logo">
-                <a href="../">ScTurtle's Pool</a>
-            </div>
-            <div id="navigation">
-                <a href="../">Home</a>
-                <a href="../archive.html">Archive</a>
-                <a href="../tags.html">Tags</a>
-                <a href="../about.html">About</a>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>ScTurtle's Pool  - Turtleblog 的配置 </title>
+    <link rel="shortcut icon" href="../images/favicon.png">
+    <link rel="stylesheet" type="text/css" href="../asserts/default.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
+  </head>
+  <body>
+    <div id="header">
+      <div id="logo">
+        <a href="../">ScTurtle's Pool</a>
+      </div>
+      <div id="navigation">
+        <a href="../">Home</a>
+        <a href="../archive.html">Archive</a>
+        <a href="../tags.html">Tags</a>
+        <a href="../about.html">About</a>
+      </div>
+    </div>
 
-        <div id="content">
-            <h1>Turtleblog 的配置</h1>
-            <div class="info">
+    <div id="content">
+      <h1>Turtleblog 的配置</h1>
+      <div class="info">
   Posted on July 16, 2012
-   on <a href="../tags/turtleblog.html">turtleblog</a> 
+   on <a href="../tags/python.html">python</a> 
 </div>
 
-<p>这个东西主要是自用和抛砖引玉而已。<a href="https://github.com/mitsuhiko/rstblog/">rstblog</a>、<a href="https://github.com/BrewerHimself/Logr">logr</a>、<a href="http://ringce.com/hyde">hyde</a> 这些项目更值得推荐。</p>
-<p>运行于 python 2.7 环境，依赖于 python-markdown、pygments、jinja2、bottle 这几个项目，可 <code>pip install</code> 安装。</p>
+<p>这个东西主要是自用和抛砖引玉而已。<a href="https://github.com/mitsuhiko/rstblog/">rstblog</a>、<a href="http://ringce.com/hyde">hyde</a> 这些项目更值得推荐。</p>
+<del>
+运行于 python 2.7 环境，
+</del>
+<p>依赖于 python-markdown、pygments、jinja2、bottle 这几个项目，可 <code>pip install</code> 安装。</p>
 <p><code>git clone</code> 一下 turtleblog 的<a href="https://github.com/scturtle/turtleblog.git">源码</a>。修改配置文件 config.json：</p>
 <div class="highlight"><pre>{
     "site name": "ScTurtle's Pool", //博客名会显示在左上角
@@ -54,7 +56,9 @@
 <p>static 下的样式表 pygments.css 配置代码高亮的配色，style.css 为整个站点的配置，可修改整站主题。</p>
 <p>修改 template 下的模板文件最好有一些 jinja2 的基础。一般只需要动一下 base.html 这个主要框架，比如加入独立页面的链接，修改页底的联系方式或加上 Google Analytics 的统计代码。</p>
 <p>最后运行一下 turtle.py 这个脚本就会在 html 文件夹下生成好静态的文件了。运行 server.py 这个脚本可以在本地预览。在 github 建立一个 yourname.github.com 项目然后将 html 文件夹的内容提交到 master 分支即可。</p>
-<p>写 markdown 时，我是用的自己的 markdown 编辑器 <a href="http://scturtle.me/turtlenote/">turtlenote</a>。</p>
+<del>
+写 markdown 时，我是用的自己的 markdown 编辑器 <a href="http://scturtle.me/turtlenote/">turtlenote</a>。
+</del>
 
 <div id="show_disqus">
   <a onclick="load_disqus();return false;" href="##">Show comments</a>
@@ -73,15 +77,15 @@
 
 <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
 
-        </div>
-        <div id="footer">
-          <p><a href="https://github.com/scturtle/turtleblog">turtleblog</a> &copy;
-            <script>document.write(new Date().getFullYear());</script> scturtle
-          <p> <a href="mailto:scturtle@gmail.com">mail</a>,
-            <a href="https://twitter.com/scturtle">twitter</a>,
-            <a href="https://github.com/scturtle">github</a>,
-            <a href="../atom.xml" rel="alternate" title="Recent Blogs | ScTurtle's Pool">feed</a>
-        </div>
+    </div>
+    <div id="footer">
+      <p><a href="https://github.com/scturtle/turtlepool">turtlepool</a> &copy;
+        <script>document.write(new Date().getFullYear());</script> scturtle
+      <p> <a href="mailto:scturtle@gmail.com">mail</a>,
+        <a href="https://twitter.com/scturtle">twitter</a>,
+        <a href="https://github.com/scturtle">github</a>,
+        <a href="../atom.xml" rel="alternate" title="Recent Blogs | ScTurtle's Pool">feed</a>
+    </div>
 <script type="text/javascript">
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-33410961-1']);
@@ -92,5 +96,5 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
-    </body>
+  </body>
 </html>

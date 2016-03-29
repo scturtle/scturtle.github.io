@@ -544,5 +544,38 @@ abcba<font color=green>b</font>ababab
   src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
 ]]></summary>
 </entry>
+<entry>
+    <title>Logistic Regression with Stochastic Gradient Descent</title>
+    <link href="https://scturtle.me/posts/2014-12-07-sgd.html" />
+    <id>https://scturtle.me/posts/2014-12-07-sgd.html</id>
+    <published>2014-12-07T00:00:00Z</published>
+    <updated>2014-12-07T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+  Posted on December  7, 2014
+   on <a href="/tags/python.html">python</a> 
+</div>
+
+<iframe src="https://render.githubusercontent.com/view/ipynb?enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f676973742f7363747572746c652f31353064306563623533613061303165633433632f7261772f386431376633343935386239643132353732656562623966343636616635303264356239373432332f7367642e6970796e62#e46fdeed-2141-4df9-8341-33aab4eef809" frameborder="0" width="100%" style="display: block; height: 2400px;">Viewer requires iframe.</iframe>
+
+
+<div id="show_disqus">
+  <a onclick="load_disqus();return false;" href="##">Show comments</a>
+</div>
+<div id="disqus_thread"></div>
+
+<script type="text/javascript">
+  function load_disqus() {
+    var disqus_shortname = 'scturtlespool';
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    document.getElementById('show_disqus').style.display='none';
+  };
+</script>
+
+<script type="text/javascript" 
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+]]></summary>
+</entry>
 
 </feed>
