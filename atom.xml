@@ -15,12 +15,7 @@
     <id>https://scturtle.me/posts/2016-01-27-foldl.html</id>
     <published>2016-01-27T00:00:00Z</published>
     <updated>2016-01-27T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on January 27, 2016
-   on <a href="/tags/haskell.html">haskell</a> 
-</div>
-
-<p>It is widely known that left folding can be implemented by right folding. But the implementation is not so obvious. Let’s try writing one from scratch. First, we need these two extensions of GHC to make life better.</p>
+    <summary type="html"><![CDATA[<p>It is widely known that left folding can be implemented by right folding. But the implementation is not so obvious. Let’s try writing one from scratch. First, we need these two extensions of GHC to make life better.</p>
 <div class="highlight"><pre><span></span><span class="cm">{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}</span>
 </pre></div>
 
@@ -90,25 +85,6 @@
 <div class="highlight"><pre><span></span><span class="nf">λ</span><span class="o">&gt;</span> <span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">r</span> <span class="n">x</span> <span class="ow">-&gt;</span> <span class="n">r</span> <span class="o">++</span> <span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="p">[</span><span class="mi">0</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">]</span> <span class="p">[</span><span class="mi">1</span> <span class="o">..</span> <span class="mi">10</span><span class="p">]</span>
 <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
 </pre></div>
-
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
 ]]></summary>
 </entry>
 <entry>
@@ -117,12 +93,7 @@
     <id>https://scturtle.me/posts/2015-12-22-pfpl.html</id>
     <published>2015-12-22T00:00:00Z</published>
     <updated>2015-12-22T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on December 22, 2015
-   on <a href="/tags/plt.html">plt</a> 
-</div>
-
-<p><a href="http://www.cs.cmu.edu/~rwh/plbook/1sted-revised.pdf">Practical Foundations for Programming Languages</a> 是一本介绍编程语言理论（PLT, programming language theory）和类型论（type theory）的书。 和另一本传说中的书 <a href="https://www.cis.upenn.edu/~bcpierce/tapl/">TAPL</a> 相比，更新内容也更广，不拘于一门编程语言，通篇的数学更简洁虽然也更难懂一些。 此外，在介绍的各种类型系统（type system）时，书里特意标出哪些规则是 call by name 那些是 call by value 的，很好地避免了单一一门语言对及早（eager）还是惰性求值的偏颇。 作者的大名也是不能更响，不管是第一版还是修订中的第二版都在网上放出 pdf 实属业界良心。</p>
+    <summary type="html"><![CDATA[<p><a href="http://www.cs.cmu.edu/~rwh/plbook/1sted-revised.pdf">Practical Foundations for Programming Languages</a> 是一本介绍编程语言理论（PLT, programming language theory）和类型论（type theory）的书。 和另一本传说中的书 <a href="https://www.cis.upenn.edu/~bcpierce/tapl/">TAPL</a> 相比，更新内容也更广，不拘于一门编程语言，通篇的数学更简洁虽然也更难懂一些。 此外，在介绍的各种类型系统（type system）时，书里特意标出哪些规则是 call by name 那些是 call by value 的，很好地避免了单一一门语言对及早（eager）还是惰性求值的偏颇。 作者的大名也是不能更响，不管是第一版还是修订中的第二版都在网上放出 pdf 实属业界良心。</p>
 <p>呃说起来 PLT 范围很广，从 Lisp/Scheme 的各种奇技淫巧，到 Haskell 从范畴论借来的各种花哨术语，再到不知何年何月才足够实用的 dependent type，摆脱不了的基础便是各种类型系统（type system）和背后的类型论了。 不过就像 PLT 其实没啥用处一样，看了这本书也并不会对写代码有什么帮助。 但是这本书会把各种语言的各种特性纳入一个统一的框架（类型论）中，告诉你哪些真能提升语言的表达能力，哪些特性是扯淡的，哪些看起来很绚丽的其实是另一些特性的组合。 了解这些呢有助于避免被某些新出语言的广告词所欺骗，也可以在永无停歇的语言互黑大战获得高屋建瓴一针见血的能力。</p>
 <p>因为章节很碎（18部分，49章）,下面试图总结性地写一写，算是给自己的笔记，和近来多无所事事的交代。</p>
 <p>Preface 有一句很有意思的话，感觉开了地图炮啊233：</p>
@@ -175,26 +146,7 @@
 <p>第八部分是 Partiality and Recursive Types。 第十九章介绍了 <a href="https://en.wikipedia.org/wiki/Programming_Computable_Functions">system PCF</a>，最简单的图灵完备的类型系统，人称 “the E. coli of programming languages”。 System PCF 的表达能力来自 general recursion 和 partiality。 比如阶乘函数可以看做 fact(0)= 1 和 fact(n+1) = (n+1) * fact(n) 这两个等式的解 fact :: Nat -&gt; Nat，这个解可以通过不动点来求得。 假设我们已经有 fact 这个解了，那么我们可以写这么一个辅助函数： f(fact) = <span class="math inline">\(\lambda\)</span> n -&gt; if n == 0 then 1 else n * fact(n-1)。 显然等式 fact = f(fact) 成立，假设我们有一个求函数不动点的函数 fix，那么 fact = fix(f)。 为何不动点就是我们要的解呢？ 因为 PCF 里面的函数是 partial 的，允许函数在有的输入上未定义（发散/不终止），所以我们可以先试着传给 f 一个非常垃圾的解，比如一个在所有输入上都不终止的函数 <span class="math inline">\(\phi\)</span>。 神奇的事情发生了！<span class="math inline">\(\phi&#39;\)</span> = f(<span class="math inline">\(\phi\)</span>) 在 0 这个 base case 上不依赖于 <span class="math inline">\(\phi\)</span> 返回了结果 1，虽然在其他输入上还是发散了。 按照不动点的含义，我们再把 <span class="math inline">\(\phi&#39;\)</span> 喂给 f 得到 <span class="math inline">\(\phi&#39;&#39;\)</span> = f(<span class="math inline">\(\phi&#39;\)</span>) = f(f(<span class="math inline">\(\phi\)</span>))。 神奇的事情再次发生了！因为 <span class="math inline">\(\phi&#39;\)</span> 在 0 上有了定义，现在 <span class="math inline">\(\phi&#39;&#39;\)</span> 在 1 上也有了定义。 因为 base case 的存在，我们就像求不动点一样不断把更好地解传给 f，就可以不断逼近一个我们想要的 total function。 实际中 fix 函数的实现也是异曲同工。</p>
 <p>可以证明的是 PCF 可实现所有 <a href="https://en.wikipedia.org/wiki/%CE%9C-recursive_function">partial recursive functions</a>（主要是可以实现 minimization/<span class="math inline">\(\mu\)</span> operation），而且 PCF 自身的 evaluator 也可以用 partial recursive functions 来表示，可见 PCF 是自举的。 由<a href="https://en.wikipedia.org/wiki/Computable_function#Definition">等价性</a>可知 PCF 是和图灵机/lambda calculus 等价的。 前面提过 T 中程序的终止的证明是“编码”进代码和类型检查中的，可想而知而有了 partial functions 抛弃了 totality 之后，写能通过类型检查的程序也更简单了。 甚至有一个定理 <a href="https://en.wikipedia.org/wiki/Blum%27s_speedup_theorem">Blum Size Theorem</a> 指出，总存在一个函数在任何 total 的语言中的最短实现是 PCF 中的最短实现的 <em>任意多倍</em>。</p>
 <p>下一章介绍了递归类型（recursive types），扩展 PCF 得到 FPC（这两名字为什么这么像？）。 我们熟悉的 list 啊 tree 啊这些都是典型的递归类型。 递归类型和前述的 inductive/coinductive types 定义几乎相同，只是拿掉了 positivity 限制。 前面提过 inductive/coinductive types 可以看做是 positive 的类型等式的解，那么递归类型则是拿掉了 positivity 限制的类型等式的解。 但是去掉了限制后解不一定存在，所以递归类型算是一种不动点近似解，也是唯一解，前述的 inductive/coinductive 之分体现在对递归类型的及早/惰性求值上。 这里十分不解的是作者说用很大的篇幅说及早求值比惰性求值表达能力要高，因为前者能表示用函数来表示后者，而后者不能表示前者？谨慎持异议…… 此外，前述的通用递归（general recursion）可以用递归类型表示出来，因为两者都是靠的自指（self-reference），所以扩充语言表达能力的不是语言特性，最终还是类型。</p>
-<p>(待续……)</p>
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
-]]></summary>
+<p>(待续……)</p>]]></summary>
 </entry>
 <entry>
     <title>Yoneda Lemma Explained in Haskell</title>
@@ -202,12 +154,7 @@
     <id>https://scturtle.me/posts/2015-06-16-yoneda.html</id>
     <published>2015-06-16T00:00:00Z</published>
     <updated>2015-06-16T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on June 16, 2015
-   on <a href="/tags/haskell.html">haskell</a> 
-</div>
-
-<blockquote>
+    <summary type="html"><![CDATA[<blockquote>
 <p>When you need something to go faster, hit it with the Yoneda lemma. Still isn’t fast enough? Use it again. —— <a href="https://twitter.com/kmett/status/546533863636627456">Edward Kmett</a></p>
 </blockquote>
 <p><a href="https://en.wikipedia.org/wiki/Yoneda_lemma">Yoneda lemma</a> may be the first understanding challenge in category theory. For an arbitrary functor <span class="math inline">\(F\)</span> from a category <span class="math inline">\(C\)</span> to the category <span class="math inline">\(Set\)</span>, Yoneda lemma says: for any object <span class="math inline">\(A\)</span> of <span class="math inline">\(C\)</span>, the natural transformations from the <a href="http://ncatlab.org/nlab/show/hom-functor">hom-functor</a> <span class="math inline">\(h_A\)</span> to <span class="math inline">\(F\)</span> are in one-to-one correspondence with the elements in <span class="math inline">\(F(A)\)</span>. That’s is,</p>
@@ -250,26 +197,7 @@ fmap a2b |                | fmap a2b
          |                |
       (a -> a) --------> f a
                   g</pre></div>
-<p>Commutation means the both ways from bottom left to top right are the same. So we can swap <code>g</code> and <code>fmap a2b</code>. Also notice that the bottom left is just <code>id</code>. The <code>(**)</code> step is an application of the <code>fmap</code> definition of functor <code>(-&gt; a)</code>, which is just function composition <code>(.)</code>. QED.</p>
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
-]]></summary>
+<p>Commutation means the both ways from bottom left to top right are the same. So we can swap <code>g</code> and <code>fmap a2b</code>. Also notice that the bottom left is just <code>id</code>. The <code>(**)</code> step is an application of the <code>fmap</code> definition of functor <code>(-&gt; a)</code>, which is just function composition <code>(.)</code>. QED.</p>]]></summary>
 </entry>
 <entry>
     <title>字符串搜索的 Horspool 算法</title>
@@ -277,12 +205,7 @@ fmap a2b |                | fmap a2b
     <id>https://scturtle.me/posts/2015-03-14-horspool.html</id>
     <published>2015-03-14T00:00:00Z</published>
     <updated>2015-03-14T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on March 14, 2015
-   on <a href="/tags/algo.html">algo</a> 
-</div>
-
-<blockquote>
+    <summary type="html"><![CDATA[<blockquote>
 <p>当你要手写一个字符串搜索算法，你会写什么？</p>
 </blockquote>
 <p>本文将要介绍的 Horspool 算法简单又不慢，一看就懂，一学就会，一写就过！</p>
@@ -349,25 +272,6 @@ abcba<font color=green>b</font>ababab
 <span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
 <span class="nf">main</span> <span class="ow">=</span> <span class="n">print</span> <span class="o">$</span> <span class="n">horspool</span> <span class="s">&quot;abcbabababab&quot;</span> <span class="s">&quot;cbabab&quot;</span>
 </pre></div>
-
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
 ]]></summary>
 </entry>
 <entry>
@@ -376,12 +280,7 @@ abcba<font color=green>b</font>ababab
     <id>https://scturtle.me/posts/2015-01-30-coq-which-day.html</id>
     <published>2015-01-30T00:00:00Z</published>
     <updated>2015-01-30T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on January 30, 2015
-   on <a href="/tags/other.html">other</a> 
-</div>
-
-<p>据说最近有道逻辑题在微博上挺火的：</p>
+    <summary type="html"><![CDATA[<p>据说最近有道逻辑题在微博上挺火的：</p>
 <blockquote>
 <p>如果昨天是明天的话就好了，这样今天就是周五了。 句中今天是周几？</p>
 </blockquote>
@@ -455,26 +354,7 @@ abcba<font color=green>b</font>ababab
 <span class="kn">Qed</span><span class="o">.</span>
 </pre></div>
 
-<p>证明对 Coq 来说很简单，基本上就是枚举所有可能性，要么成立要么反证法什么的，就不赘述了。</p>
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
-]]></summary>
+<p>证明对 Coq 来说很简单，基本上就是枚举所有可能性，要么成立要么反证法什么的，就不赘述了。</p>]]></summary>
 </entry>
 <entry>
     <title>Play 0hh1.com with PyAutoGUI</title>
@@ -482,34 +362,10 @@ abcba<font color=green>b</font>ababab
     <id>https://scturtle.me/posts/2014-12-23-auto-0hh1.html</id>
     <published>2014-12-23T00:00:00Z</published>
     <updated>2014-12-23T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on December 23, 2014
-   on <a href="/tags/python.html">python</a> 
-</div>
-
-<p><img src="https://dl.dropboxusercontent.com/u/1551217/0hh1.gif" style="max-width:480px;"/></p>
+    <summary type="html"><![CDATA[<p><img src="https://dl.dropboxusercontent.com/u/1551217/0hh1.gif" style="max-width:480px;"/></p>
 <p>Inspired by <a href="http://inventwithpython.com/blog/2014/12/17/programming-a-bot-to-play-the-sushi-go-round-flash-game/">this blog</a>.</p>
 <p>Much simpler example showing how to play <a href="http://0hh1.com">0hh1.com</a>(simple game like 2048) with <a href="https://pyautogui.readthedocs.org/en/latest/">PyAutoGUI</a>.</p>
-<p>Code is <a href="https://gist.github.com/scturtle/9403534f32ff7a95dd3f">here</a>.</p>
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
-]]></summary>
+<p>Code is <a href="https://gist.github.com/scturtle/9403534f32ff7a95dd3f">here</a>.</p>]]></summary>
 </entry>
 <entry>
     <title>SVM with Stochastic Gradient Descent</title>
@@ -517,31 +373,7 @@ abcba<font color=green>b</font>ababab
     <id>https://scturtle.me/posts/2014-12-18-svm-sgd.html</id>
     <published>2014-12-18T00:00:00Z</published>
     <updated>2014-12-18T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on December 18, 2014
-   on <a href="/tags/python.html">python</a> 
-</div>
-
- <iframe src="https://render.githubusercontent.com/view/ipynb?enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f676973742f7363747572746c652f31353064306563623533613061303165633433632f7261772f616230306264373962373332653362663364303666393237633835626166666633356363363064352f73766d5f7367642e6970796e62#eb17f0b3-4040-4ac9-a078-396645a3faf9" frameborder="0" width="100%" style="display: block; height: 1550px;">Viewer requires iframe.</iframe>
-
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+    <summary type="html"><![CDATA[ <iframe src="https://render.githubusercontent.com/view/ipynb?enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f676973742f7363747572746c652f31353064306563623533613061303165633433632f7261772f616230306264373962373332653362663364303666393237633835626166666633356363363064352f73766d5f7367642e6970796e62#eb17f0b3-4040-4ac9-a078-396645a3faf9" frameborder="0" width="100%" style="display: block; height: 1550px;">Viewer requires iframe.</iframe>
 ]]></summary>
 </entry>
 <entry>
@@ -550,32 +382,129 @@ abcba<font color=green>b</font>ababab
     <id>https://scturtle.me/posts/2014-12-07-sgd.html</id>
     <published>2014-12-07T00:00:00Z</published>
     <updated>2014-12-07T00:00:00Z</updated>
-    <summary type="html"><![CDATA[<div class="info">
-  Posted on December  7, 2014
-   on <a href="/tags/python.html">python</a> 
-</div>
-
-<iframe src="https://render.githubusercontent.com/view/ipynb?enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f676973742f7363747572746c652f31353064306563623533613061303165633433632f7261772f386431376633343935386239643132353732656562623966343636616635303264356239373432332f7367642e6970796e62#e46fdeed-2141-4df9-8341-33aab4eef809" frameborder="0" width="100%" style="display: block; height: 2400px;">Viewer requires iframe.</iframe>
-
-
-<div id="show_disqus">
-  <a onclick="load_disqus();return false;" href="##">Show comments</a>
-</div>
-<div id="disqus_thread"></div>
-
-<script type="text/javascript">
-  function load_disqus() {
-    var disqus_shortname = 'scturtlespool';
-    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    document.getElementById('show_disqus').style.display='none';
-  };
-</script>
-
-<script type="text/javascript" 
-  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+    <summary type="html"><![CDATA[<iframe src="https://render.githubusercontent.com/view/ipynb?enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f676973742f7363747572746c652f31353064306563623533613061303165633433632f7261772f386431376633343935386239643132353732656562623966343636616635303264356239373432332f7367642e6970796e62#e46fdeed-2141-4df9-8341-33aab4eef809" frameborder="0" width="100%" style="display: block; height: 2400px;">Viewer requires iframe.</iframe>
 ]]></summary>
+</entry>
+<entry>
+    <title>Minimal Haskell Environment With Latest GHC and Cabal-Install on Windows</title>
+    <link href="https://scturtle.me/posts/2014-07-11-hask-env.html" />
+    <id>https://scturtle.me/posts/2014-07-11-hask-env.html</id>
+    <published>2014-07-11T00:00:00Z</published>
+    <updated>2014-07-11T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p>Delete old environment if you have <code>C:\Users\USERNAME\AppData\Roaming\cabal</code> and <code>C:\Users\USERNAME\AppData\Roaming\ghc</code>.</p>
+<p>Download <a href="http://www.haskell.org/ghc/">latest GHC</a> and unzip it to <code>C:\Program Files\haskell</code>.</p>
+<p>Add <code>C:\Program Files\haskell\bin\</code> into <code>PATH</code>.</p>
+<p>Get a pre-built <a href="http://www.haskell.org/cabal/download.html">cabal.exe</a>. And put it into the above path.</p>
+<p>Following command are executed under <a href="http://www.mingw.org/wiki/msys">MSYS</a>. <code>Cygwin</code> just fails.</p>
+<p>Get packages list from hackage:</p>
+<div class ="highlight"><pre>$ cabal update</pre></div>
+<p>If it tells you to <code>cabal install cabal-install</code>, don’t believe it :)</p>
+<p>We first get a right version of cabal and then the latest cabal-install:</p>
+<div class ="highlight"><pre>$ cabal install cabal
+$ export PATH="/c/Program Files/haskell/perl":"/c/Program Files/haskell/mingw/bin":$PATH
+$ cabal install cabal-install</pre></div>
+<p>Replace our original <code>cabal.exe</code> by the one built in <code>C:\Users\USERNAME\AppData\Roaming\cabal\bin\</code>. Also add the above path into <code>PATH</code>.</p>
+<p>Now we have the latest <code>GHC</code> and <code>Cabal-Install</code> :)</p>]]></summary>
+</entry>
+<entry>
+    <title>Genetic Algorithm and Image Evolution</title>
+    <link href="https://scturtle.me/posts/2014-04-18-ga.html" />
+    <id>https://scturtle.me/posts/2014-04-18-ga.html</id>
+    <published>2014-04-18T00:00:00Z</published>
+    <updated>2014-04-18T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<p style="text-align: center;">
+<img src='/images/ga-original.png' style='display:inline'/> <img src='/images/ga-result.bmp' style='display:inline'/>
+</p>
+<p>Recently, I find a <a href="http://multigrad.blogspot.hk/2014/04/math-evolution-and-dirty-tricks.html">blog</a> about how to use <a href="https://code.google.com/p/deap/">DEAP</a>, a genetic programming library in Python, to find the magic number in the famous <a href="http://en.wikipedia.org/wiki/Fast_inverse_square_root">fast inverse square root</a> algorithm. It seems that genetic algorithm is not too difficult and let’s play it on an <a href="http://rogeralsing.com/2008/12/07/genetic-programming-evolution-of-mona-lisa/">old toy programming game</a>.</p>
+<p>The purpose is to use a certain number of triangles to approximate an image. A lot of works have been done on this in various programming languages. But let’s try it by hand and in Python.</p>
+<p>The idea of genetic algorithm is repeatedly evolution on a population of DNA. Good DNA are kept and used to generate the next generation through crossover and mutation. In plain words, crossover is exchanging small parts between two DNA and mutation is random change on one DNA.</p>
+<p>First, we need to import something:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">deap</span> <span class="kn">import</span> <span class="n">base</span><span class="p">,</span> <span class="n">creator</span><span class="p">,</span> <span class="n">tools</span><span class="p">,</span> <span class="n">algorithms</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageDraw</span>
+<span class="o">...</span>
+</pre></div>
+
+<p>Let’s fix some constants. The size of image is restricted to be 100x100. Each generation contains a population of 40 individuals. And the DNA of each individual is just a set of 50 triangles.</p>
+<div class="highlight"><pre><span></span><span class="n">PIC</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;head.jpg&#39;</span><span class="p">)</span>
+<span class="n">SIZE</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">NUMBER_OF_TRIANGLES</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">POPULATION</span> <span class="o">=</span> <span class="mi">40</span>
+<span class="n">NGEN</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">POLY</span> <span class="o">=</span> <span class="mi">3</span>
+</pre></div>
+
+<p>We need <code>gen_one_triangle()</code> to generate one triangle in random position with random color and transparency.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_one_triangle</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">([(</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">POLY</span><span class="p">)]),</span>
+            <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
+</pre></div>
+
+<p>With DEAP, we define some classes and the initial part:</p>
+<div class="highlight"><pre><span></span><span class="n">creator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;Fitness&quot;</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">Fitness</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,))</span>  <span class="c1"># maximize fitness</span>
+<span class="n">creator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;Individual&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">creator</span><span class="o">.</span><span class="n">Fitness</span><span class="p">)</span>  <span class="c1"># individual class</span>
+
+<span class="n">toolbox</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">Toolbox</span><span class="p">()</span>
+<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;attr&quot;</span><span class="p">,</span> <span class="n">gen_one_triangle</span><span class="p">)</span>  <span class="c1"># the above function</span>
+<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span>  <span class="c1"># initialization of individual</span>
+                 <span class="n">creator</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="n">NUMBER_OF_TRIANGLES</span><span class="p">)</span>
+<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;population&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span>  <span class="c1"># initialization of population</span>
+                 <span class="nb">list</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">)</span>
+</pre></div>
+
+<p>Now we should figure out how to evaluate the intermediate result (50 triangles). I draw them on an blank background and do pixel by pixel comparison with the origin image:</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">triangles_to_image</span><span class="p">(</span><span class="n">triangles</span><span class="p">):</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">SIZE</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">),</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">tri</span> <span class="ow">in</span> <span class="n">triangles</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGBA&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">SIZE</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">))</span>
+        <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="n">draw</span><span class="o">.</span><span class="n">polygon</span><span class="p">(</span><span class="n">tri</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fill</span><span class="o">=</span><span class="n">tri</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">im</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">mask</span><span class="p">,</span> <span class="n">draw</span>
+    <span class="k">return</span> <span class="n">im</span>
+
+<span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">im1</span><span class="p">,</span> <span class="n">t2</span><span class="p">):</span>
+    <span class="n">im2</span> <span class="o">=</span> <span class="n">triangles_to_image</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
+    <span class="n">pix1</span><span class="p">,</span> <span class="n">pix2</span> <span class="o">=</span> <span class="n">im1</span><span class="o">.</span><span class="n">load</span><span class="p">(),</span> <span class="n">im2</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="n">ans</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">SIZE</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">SIZE</span><span class="p">):</span>
+            <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span> <span class="o">=</span> <span class="n">pix1</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b3</span> <span class="o">=</span> <span class="n">pix2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="n">ans</span> <span class="o">+=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">-</span> <span class="n">b1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">a2</span> <span class="o">-</span> <span class="n">b2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">a3</span> <span class="o">-</span> <span class="n">b3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span> <span class="o">/</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">SIZE</span> <span class="o">*</span> <span class="n">SIZE</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">255</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)),</span>
+
+<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;evaluate&quot;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">PIC</span><span class="p">))</span>
+</pre></div>
+
+<p>For crossover we use the default function in DEAP to work on sequences. And we define a <code>mutate</code> function to change position or color of one triangle in individual. (That function is a bit long and boring. Let’s skip it …) We also use the default select function in DEAP. Register them:</p>
+<div class="highlight"><pre><span></span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;evaluate&quot;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">PIC</span><span class="p">))</span>
+<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;mate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">cxTwoPoint</span><span class="p">)</span>  <span class="c1"># crossover</span>
+<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;mutate&quot;</span><span class="p">,</span> <span class="n">mutate</span><span class="p">)</span>  <span class="c1"># mutation</span>
+<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selTournament</span><span class="p">,</span> <span class="n">tournsize</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+
+<p>Finally, in the <code>main</code> function we just call the algorithm function in one line.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">pop</span> <span class="o">=</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">POPULATION</span><span class="p">)</span>
+    <span class="n">hof</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">HallOfFame</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">Statistics</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ind</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pop</span><span class="p">,</span> <span class="n">log</span> <span class="o">=</span> <span class="n">algorithms</span><span class="o">.</span><span class="n">eaSimple</span><span class="p">(</span>
+            <span class="n">pop</span><span class="p">,</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">cxpb</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mutpb</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">ngen</span><span class="o">=</span><span class="n">NGEN</span><span class="p">,</span> <span class="n">stats</span><span class="o">=</span><span class="n">stats</span><span class="p">,</span>
+            <span class="n">halloffame</span><span class="o">=</span><span class="n">hof</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;result.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">triangles_to_image</span><span class="p">(</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;result.bmp&#39;</span><span class="p">)</span>
+</pre></div>
+
+<p>The picture in the head of this blog is generated through 10,000 generations within sevaral hours.<br />
+The full source code is <a href="https://gist.github.com/scturtle/11035675">here</a>. Feel free to play with it.</p>]]></summary>
 </entry>
 
 </feed>
