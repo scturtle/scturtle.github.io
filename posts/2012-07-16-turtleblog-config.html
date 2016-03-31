@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - Turtleblog 的配置 </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -36,22 +38,22 @@
 </del>
 <p>依赖于 python-markdown、pygments、jinja2、bottle 这几个项目，可 <code>pip install</code> 安装。</p>
 <p><code>git clone</code> 一下 turtleblog 的<a href="https://github.com/scturtle/turtleblog.git">源码</a>。修改配置文件 config.json：</p>
-<div class="highlight"><pre>{
+<div class="highlight"><pre><code class="nohighlight">{
     "site name": "ScTurtle's Pool", //博客名会显示在左上角
     "site url": "http://scturtle.github.com", //博客网址
     "author": "scturtle",
     "number of blogs per page": 10,
     "markdown config":"extra codehilite",//配置 markdown 扩展
     "disqus shortname":"scturtlespool"
-}</pre></div>
+}</code></pre></div>
 <p>“disqus shortname” 这一项请先注册 disqus 的服务，然后在其提供的安装代码中寻找。</p>
 <p>每一篇文章是 blog 目录下的一个文件夹（可以任意递归），例如建立 <em>2012/7/15/test/</em> 文件夹，那么这篇文章的 url 就是这个。文件夹下需要有 blog.md、config.json 两个文件。还可以有 img 文件夹专放图片。blog.md 中写主要文章内容，config.json 中配置：</p>
-<div class="highlight"><pre>{
+<div class="highlight"><pre><code class="nohighlight">{
     "title":"文章标题",
     "tags":"标签，以空格分隔",
     "date":"2012-7-15 10:00",
     "enable mathjax":true //是否启用 mathjax，如果文中有 Tex 公式
-}</pre></div>
+}</code></pre></div>
 <p>如果需要 project、about 等独立页面，那么在 page 下建立一个包含 page.md、config.json 的文件夹，页面 url 为文件夹名称。config.json 中配置 “title”（显示在浏览器标签栏的名字）。</p>
 <p>static 下的样式表 pygments.css 配置代码高亮的配色，style.css 为整个站点的配置，可修改整站主题。</p>
 <p>修改 template 下的模板文件最好有一些 jinja2 的基础。一般只需要动一下 base.html 这个主要框架，比如加入独立页面的链接，修改页底的联系方式或加上 Google Analytics 的统计代码。</p>

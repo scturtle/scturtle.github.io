@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - 情报理工海报的图像处理 </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -39,100 +41,96 @@
 <p>然后注意到红底部分咋全军覆没了呢？看了看取色的值，发现灰色和红色叠加后，RGB 值改变较大，于是又单独做了一下这个区域的范围，得到了更好的效果：</p>
 <p><img class="align-center" src="../images/p2.png" style="width:50%" /></p>
 <p>这部分的代码：</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<div class="highlight"><pre><code class="python">from PIL import Image
 
-<span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">'poster.jpg'</span><span class="p">)</span>
+im = Image.open('poster.jpg')
 
-<span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+pix = im.load()
 
-<span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
-    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span>
-        <span class="k">if</span> <span class="mi">140</span> <span class="o">&lt;</span> <span class="n">m</span> <span class="o">&lt;</span> <span class="mi">170</span><span class="p">:</span>
-            <span class="n">avg</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">abs</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">m</span><span class="p">,</span> <span class="n">b</span> <span class="o">-</span> <span class="n">m</span><span class="p">,</span> <span class="n">c</span> <span class="o">-</span> <span class="n">m</span><span class="p">)))</span>
-            <span class="k">if</span>   <span class="n">avg</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
-                <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">avg</span> <span class="o">&lt;</span> <span class="mi">70</span><span class="p">:</span>
-                <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">avg</span> <span class="o">&lt;</span> <span class="mi">90</span><span class="p">:</span>
-                <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">150</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="mi">80</span> <span class="o">&lt;</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">150</span> <span class="ow">and</span> <span class="mi">70</span> <span class="o">&lt;</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="mi">140</span> <span class="ow">and</span> <span class="mi">70</span> <span class="o">&lt;</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="mi">140</span><span class="p">:</span>
-                <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">pix</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+for y in xrange(im.size[1]):
+    for x in xrange(im.size[0]):
+        a, b, c = pix[x, y]
+        m = (a + b + c) / 3
+        if 140 < m < 170:
+            avg = sum(map(abs, (a - m, b - m, c - m)))
+            if   avg < 50:
+                pix[x, y] = (0, 0, 0)
+            elif avg < 70:
+                pix[x, y] = (50, 50, 50)
+            elif avg < 90:
+                pix[x, y] = (150, 150, 150)
+            else:
+                pix[x, y] = (255, 255, 255)
+        else:
+            if 80 < a < 150 and 70 < b < 140 and 70 < c < 140:
+                pix[x, y] = (0, 0, 255)
+            else:
+                pix[x, y] = (255, 255, 255)
 
-<span class="n">im</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">'p.png'</span><span class="p">,</span> <span class="s1">'png'</span><span class="p">)</span>
-</pre></div>
-
+im.show()
+im.save('p.png', 'png')</code></pre></div>
 <p>这总可以拿去 OCR 了吧，无奈试了几个 OCR 的，都没效果。看来处理得还是太挫啊。本想就此打住写作业去，结果手痒又想起拿滑窗自己做下 OCR。机器学习什么的还是不去折腾了，就进行屌丝级像素比对吧。注意到一件比较蛋疼的事，那就是 0 和 1 特么的不对齐！连续的 1 有时候会吃掉一个宽像素，连续的 0 有时候又会撑出来一个。于是在滑窗的过程中做了一个抖动的判断，效果很好。下面是第一行的一部分和其结果（都正确呵呵）：</p>
 <p><img class="align-center" src="../images/ocr-test.png" style="width:50%" /></p>
 <center>
 <code>1000111011100100110000101100100011101010</code>
 </center>
 <p>这部分的代码：</p>
-<div class="highlight"><pre><span></span><span class="c1"># coding: utf-8</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<div class="highlight"><pre><code class="python"># coding: utf-8
+from PIL import Image
 
-<span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">'test.png'</span><span class="p">)</span>
-<span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">'L'</span><span class="p">)</span>  <span class="c1"># 转灰度</span>
-<span class="n">pix</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-<span class="n">size</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-
-
-<span class="c1"># 获得7*5的区域的灰度矩阵</span>
-<span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">):</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">7</span><span class="p">)]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
-    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">7</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-            <span class="n">d</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">pix</span><span class="p">[</span><span class="n">sx</span> <span class="o">+</span> <span class="n">x</span><span class="p">,</span> <span class="n">sy</span> <span class="o">+</span> <span class="n">y</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">d</span>
-
-<span class="c1"># 前两个作为0,1标准</span>
-<span class="n">d1</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">d0</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+im = Image.open('test.png')
+im = im.convert('L')  # 转灰度
+pix = im.load()
+size = list(im.size)
 
 
-<span class="c1"># 灰度矩阵和标准间比对打分</span>
-<span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="n">da</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-    <span class="n">sc</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">7</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-            <span class="n">sc</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">da</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">]</span> <span class="o">-</span> <span class="n">db</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">sc</span>
+# 获得7*5的区域的灰度矩阵
+def get(pix, sx, sy):
+    d = [[0 for i in xrange(7)] for j in xrange(5)]
+    for y in xrange(7):
+        for x in xrange(5):
+            d[x][y] = pix[sx + x, sy + y]
+    return d
+
+# 前两个作为0,1标准
+d1 = get(pix, 0, 0)
+d0 = get(pix, 5, 0)
 
 
-<span class="c1"># 根据打分猜0或1</span>
-<span class="k">def</span> <span class="nf">guess</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">):</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">)</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">score</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d0</span><span class="p">),</span> <span class="n">score</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d1</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+# 灰度矩阵和标准间比对打分
+def score(da, db):
+    sc = 0
+    for y in xrange(7):
+        for x in xrange(5):
+            sc += abs(da[x][y] - db[x][y])
+    return sc
 
-<span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">while</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">4</span><span class="p">:</span>
-    <span class="n">g</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">guess</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># 测试左抖动 1px</span>
-        <span class="n">gl</span><span class="p">,</span> <span class="n">sl</span> <span class="o">=</span> <span class="n">guess</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">sl</span> <span class="o">&lt;</span> <span class="n">s</span> <span class="o">-</span> <span class="mi">1000</span><span class="p">:</span>
-            <span class="c1">#print 'l',s,sl</span>
-            <span class="n">g</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">gl</span><span class="p">,</span> <span class="n">sl</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">5</span><span class="p">:</span>  <span class="c1"># 测试右抖动 1px</span>
-        <span class="n">gr</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">guess</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">sr</span> <span class="o">&lt;</span> <span class="n">s</span> <span class="o">-</span> <span class="mi">1000</span><span class="p">:</span>
-            <span class="c1">#print 'r',s,sr</span>
-            <span class="n">g</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">gr</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="c1">#print 'x:',x, s, g</span>
-    <span class="k">print</span> <span class="n">g</span><span class="p">,</span>
-    <span class="n">x</span> <span class="o">+=</span> <span class="mi">5</span>
-</pre></div>
 
+# 根据打分猜0或1
+def guess(pix, sx, sy):
+    d = get(pix, sx, sy)
+    s = (score(d, d0), score(d, d1))
+    if s[0] < s[1]:
+        return 0, min(s[0], s[1])
+    else:
+        return 1, min(s[0], s[1])
+
+x = 0
+while x < size[0] - 4:
+    g, s = guess(pix, x, 0)
+    if x > 0:  # 测试左抖动 1px
+        gl, sl = guess(pix, x - 1, 0)
+        if sl < s - 1000:
+            #print 'l',s,sl
+            g, s, x = gl, sl, x - 1
+    if x < size[0] - 5:  # 测试右抖动 1px
+        gr, sr = guess(pix, x + 1, 0)
+        if sr < s - 1000:
+            #print 'r',s,sr
+            g, s, x = gr, sr, x + 1
+    #print 'x:',x, s, g
+    print g,
+    x += 5</code></pre></div>
 
 <div id="show_disqus">
   <a onclick="load_disqus();return false;" href="##">Show comments</a>

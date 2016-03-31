@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - Project Euler Problem 100 </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -39,13 +41,11 @@
 y_i=2x_1y_1\,x_{i-1}+(2x_1^2+1)\,y_{i-1}\]</span></p>
 <p>好了，先求得对应佩尔方程的解（比如欧拉方法或者连分数方法），为 <span class="math inline">\((3,2)\)</span>，然后得到所需的负佩尔方程的解，为 <span class="math inline">\((1,1)\)</span>。先估计一个 t 的值，然后不断由递推公式推得所有解，一旦得到的解刚好大于估计值，几乎就可以确定得到答案了。</p>
 <p>对应代码为：</p>
-<div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="p">(((</span><span class="mi">10</span><span class="o">**</span><span class="mi">12</span><span class="o">*</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
-<span class="k">while</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">:</span>
-    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="mi">3</span><span class="o">*</span><span class="n">y</span>
-<span class="k">print</span> <span class="p">(</span><span class="n">y</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-</pre></div>
-
+<div class="highlight"><pre><code class="python">t = (((10**12*2-1)**2+1)/2)**0.5
+x, y = 1, 1
+while y < t:
+    x, y = 3*x+4*y, 2*x+3*y
+print (y+1)/2</code></pre></div>
 <p>幸运的是我们最后得到的 a 恰好是整数，也正是此题的解。</p>
 
 <div id="show_disqus">

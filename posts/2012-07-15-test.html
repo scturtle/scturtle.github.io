@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - 测试 </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -51,12 +53,10 @@
 </div>
 <p><img class="align-center" src="../images/test.jpg" style="width:100px" /></p>
 <p>测试代码块：</p>
-<div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="s1">r'''B = &quot;A = r\'''</span><span class="s2">&quot; + A + &quot;</span>\<span class="s1">'''</span><span class="se">\n</span><span class="s1">&quot; + A</span>
-<span class="s1">print B'''</span>
-<span class="n">B</span> <span class="o">=</span> <span class="s2">&quot;A = r</span><span class="se">\'</span><span class="s2">''&quot;</span> <span class="o">+</span> <span class="n">A</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\'</span><span class="s2">''</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">A</span>
-<span class="k">print</span> <span class="n">B</span>
-</pre></div>
-
+<div class="highlight"><pre><code class="python">A = r'''B = "A = r\'''" + A + "\'''\n" + A
+print B'''
+B = "A = r\'''" + A + "\'''\n" + A
+print B</code></pre></div>
 <p>测试表格：</p>
 <table>
 <thead>

@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - Yoneda Lemma Explained in Haskell </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -37,34 +39,32 @@
 <p><span class="math display">\[ \mathrm{Nat}(h_A,F) \cong F(A). \]</span></p>
 <p>Doesn’t it hurt your brain? The proof is even more tedious. In another way, however, it just states that every object can be determined by how other objects map into it. The interesting thing is, once translated into Haskell, the Yoneda lemma becomes more readable and understandable.</p>
 <p>In Haskell the category <span class="math inline">\(C\)</span> and <span class="math inline">\(Set\)</span> are both <span class="math inline">\(Hask\)</span>, the category of all types in Haskell. And a natural transformation is just a polynomial function which, in this case, from functor <code>(-&gt;) a</code> to functor <code>f</code>. So in Haskell we can write Yoneda lemma as</p>
-<div class="highlight"><pre>(forall b. (a -> b) -> f b) ~ f a</pre></div>
+<div class="highlight"><pre><code class="nohighlight">(forall b. (a -> b) -> f b) ~ f a</code></pre></div>
 <p>which means an isomorphism between a polynomial function and a type. This can be interpreted in the following way: for a fixed type <code>a</code> and a functor <code>f</code>, if there is a polynomial function <code>g</code> that knows how to convert any <code>a -&gt; b</code> into <code>f b</code>, then this <code>g</code> is just something holding a <code>f a</code> (and remembering to <code>fmap</code> any <code>a -&gt; b</code> on it), and vice versa.</p>
 <p>To prove this isomorphism, we need to show that for the following two conversion functions:</p>
-<div class="highlight"><pre><span></span><span class="nf">fw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">a</span>
-<span class="nf">fw</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">f</span> <span class="n">id</span>
+<div class="highlight"><pre><code class="haskell">fw :: (Functor f) => (forall b . (a -> b) -> f b) -> f a
+fw f = f id
 
-<span class="nf">bw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="n">f</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span>
-<span class="nf">bw</span> <span class="n">x</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">fmap</span> <span class="n">f</span> <span class="n">x</span>
-</pre></div>
-
+bw :: (Functor f) => f a -> (forall b . (a -> b) -> f b)
+bw x f = fmap f x</code></pre></div>
 <p>the following two statements are both true:</p>
-<div class="highlight"><pre>fw . bw = id
-bw . fw = id</pre></div>
+<div class="highlight"><pre><code class="nohighlight">fw . bw = id
+bw . fw = id</code></pre></div>
 <p>The first one is easy:</p>
-<div class="highlight"><pre>(fw . bw) fa
+<div class="highlight"><pre><code class="nohighlight">(fw . bw) fa
 = fw (bw fa)
 = (bw fa) id
 = bw fa id
 = fmap id fa
-= fa</pre></div>
+= fa</code></pre></div>
 <p>and there are two steps notable in the second proof:</p>
-<div class="highlight"><pre>bw (fw g) a2b
+<div class="highlight"><pre><code class="nohighlight">bw (fw g) a2b
 = fmap a2b (g id)
 = g (fmap a2b id) (*)
 = g (a2b . id)    (**)
-= g a2b</pre></div>
+= g a2b</code></pre></div>
 <p>In <code>(*)</code> we swap <code>g</code> and <code>fmap a2b</code> when apply them to <code>id</code> in sequence. This is because the <code>forall</code> in the polynomial function <code>g</code> makes it a natural transformation from functor <code>(-&gt; a)</code> to functor <code>f</code> and ensure that the following diagram commute:</p>
-<div class="highlight"><pre>                  g
+<div class="highlight"><pre><code class="nohighlight">                  g
       (a -> b) --------> f b
          ^                ^
          |                |
@@ -72,7 +72,7 @@ fmap a2b |                | fmap a2b
          |                |
          |                |
       (a -> a) --------> f a
-                  g</pre></div>
+                  g</code></pre></div>
 <p>Commutation means the both ways from bottom left to top right are the same. So we can swap <code>g</code> and <code>fmap a2b</code>. Also notice that the bottom left is just <code>id</code>. The <code>(**)</code> step is an application of the <code>fmap</code> definition of functor <code>(-&gt; a)</code>, which is just function composition <code>(.)</code>. QED.</p>
 
 <div id="show_disqus">

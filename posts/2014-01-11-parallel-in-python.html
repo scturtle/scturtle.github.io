@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - Parallel in Python </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -33,53 +35,47 @@
 <p>Multithreading and multiprocessing can be very easy in python !<br />
 Following tests are processed on a machine with 24 cores.</p>
 <p>The original program:</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">factorial</span>
-<span class="k">print</span> <span class="nb">sum</span><span class="p">(</span><span class="n">factorial</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">%</span><span class="mi">1000</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">6000</span><span class="p">))</span> <span class="o">%</span> <span class="mi">1000</span>
+<div class="highlight"><pre><code class="python">from math import factorial
+print sum(factorial(i)%1000 for i in xrange(6000)) % 1000
 
-<span class="c1"># $ time pypy test.py</span>
-<span class="c1"># 314</span>
-<span class="c1"># </span>
-<span class="c1"># real    0m18.202s</span>
-<span class="c1"># user    0m18.099s</span>
-<span class="c1"># sys     0m0.057s</span>
-</pre></div>
-
+# $ time pypy test.py
+# 314
+# 
+# real    0m18.202s
+# user    0m18.099s
+# sys     0m0.057s</code></pre></div>
 <p>With <a href="http://docs.python.org/2/library/multiprocessing.html"><code>multiprocessing</code></a>:</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">factorial</span>
-<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
-<span class="c1"># from multiprocessing.dummy import Pool  # but using threads</span>
+<div class="highlight"><pre><code class="python">from math import factorial
+from multiprocessing import Pool
+# from multiprocessing.dummy import Pool  # but using threads
 
-<span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">()</span>
-<span class="k">print</span> <span class="nb">sum</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">%</span><span class="mi">1000</span><span class="p">,</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">6000</span><span class="p">)))</span> <span class="o">%</span> <span class="mi">1000</span>
+pool = Pool()
+print sum(pool.imap_unordered(lambda n: factorial(n)%1000, xrange(6000))) % 1000
 
-<span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="n">pool</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+pool.close()
+pool.join()
 
-<span class="c1"># $ time pypy test2.py</span>
-<span class="c1"># 314</span>
-<span class="c1"># </span>
-<span class="c1"># real    0m5.545s</span>
-<span class="c1"># user    0m41.953s</span>
-<span class="c1"># sys     0m0.986s</span>
-</pre></div>
-
+# $ time pypy test2.py
+# 314
+# 
+# real    0m5.545s
+# user    0m41.953s
+# sys     0m0.986s</code></pre></div>
 <p>With <a href="http://docs.python.org/3.4/library/concurrent.futures.html"><code>concurrent.futures</code></a> (<a href="https://pypi.python.org/pypi/futures">Backport in 2.7</a>):</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">factorial</span>
-<span class="kn">import</span> <span class="nn">futures</span>  <span class="c1"># &lt;= 2.7</span>
-<span class="c1"># from concurrent import futures  # &gt;= 3.2</span>
+<div class="highlight"><pre><code class="python">from math import factorial
+import futures  # <= 2.7
+# from concurrent import futures  # >= 3.2
 
-<span class="c1"># with futures.ThreadPoolExecutor() as executor:</span>
-<span class="k">with</span> <span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
-    <span class="k">print</span> <span class="nb">sum</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">%</span><span class="mi">1000</span><span class="p">,</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">6000</span><span class="p">)))</span> <span class="o">%</span> <span class="mi">1000</span>
+# with futures.ThreadPoolExecutor() as executor:
+with futures.ProcessPoolExecutor() as executor:
+    print sum(executor.map(lambda n: factorial(n)%1000, xrange(6000))) % 1000
 
-<span class="c1"># $ time pypy test3.py</span>
-<span class="c1"># 314</span>
-<span class="c1"># </span>
-<span class="c1"># real    0m6.804s</span>
-<span class="c1"># user    0m45.791s</span>
-<span class="c1"># sys     0m1.409s</span>
-</pre></div>
-
+# $ time pypy test3.py
+# 314
+# 
+# real    0m6.804s
+# user    0m45.791s
+# sys     0m1.409s</code></pre></div>
 
 <div id="show_disqus">
   <a onclick="load_disqus();return false;" href="##">Show comments</a>

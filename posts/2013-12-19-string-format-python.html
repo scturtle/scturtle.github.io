@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - Python 字符串格式化详参 </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -33,24 +35,24 @@
 <p><a href="http://docs.python.org/dev/library/string.html#formatspec">来源docs</a></p>
 <p><code>{}</code> 包裹的是替换域，<code>{{</code> 和 <code>}}</code> 可用来 escape。</p>
 <p>语法</p>
-<div class="highlight"><pre>替换域 ::=  "{" [域名] ["!" 转换] [":" 格式] "}"
+<div class="highlight"><pre><code class="nohighlight">替换域 ::=  "{" [域名] ["!" 转换] [":" 格式] "}"
 域名   ::=  参数名 ("." 属性名 | "[" 索引 "]")*
 参数名 ::=  [关键字 | 数字]
 属性名 ::=  关键字
 索引   ::=  数字 | 索引字符串
 索引   ::=  <任何字符除了 "]"> +
 转换   ::=  "r" | "s" | "a"
-格式   ::=  <如下介绍></pre></div>
+格式   ::=  <如下介绍></code></pre></div>
 <p>参数名要么是关键字（keyword=“…”）要么是数字（标识第几个参数，3.1中默认可忽略）。 参数名后可加 <code>.属性名</code>（<code>getattr()</code>）或 <code>[索引]</code>（<code>__getitem__()</code>）。</p>
 <p>转换域进行格式化之前的强制类型转换（而不是默认的<code>__format__()</code>）。<code>!s</code> 调用 <code>str()</code>，<code>!r</code> 调用 <code>repr()</code>，<code>!a</code> 调用 <code>ascii()</code>。</p>
 <p>格式域控制字段宽度，对齐，填充，小数精度等。依据是每种类型自己定义的<code>微语言</code>。格式域可嵌套但只能包含域名。大多数内置类型支持默认的微语言：</p>
-<div class="highlight"><pre>格式 ::=  [[fill]align][sign][#][0][width][,][.precision][type]
+<div class="highlight"><pre><code class="nohighlight">格式 ::=  [[fill]align][sign][#][0][width][,][.precision][type]
 fill     ::=  <填充字符除了 '{' or '}'>
 align ::=  "<" | ">" | "=" | "^"
 sign  ::=  "+" | "-" | " "
 width ::=  integer
 precision ::=  integer
-type ::=  "b" | "c" | "d" | "e" | "E" | "f" | "F" | "g" | "G" | "n" | "o" | "s" | "x" | "X" | "%"</pre></div>
+type ::=  "b" | "c" | "d" | "e" | "E" | "f" | "F" | "g" | "G" | "n" | "o" | "s" | "x" | "X" | "%"</code></pre></div>
 <p>align：左对齐，右对齐，填充符号和数字间，居中。</p>
 <p>sign：正数前+负数前-，正数前无负数前-，正数前空格负数前-。</p>
 <p>#：整数、浮点数、复数和 Decimal 使用<code>替代格式</code>。比如整数在用十六进制输出时添加<code>0x</code>前缀。</p>

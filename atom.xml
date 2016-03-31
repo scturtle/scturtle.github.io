@@ -16,76 +16,58 @@
     <published>2016-01-27T00:00:00Z</published>
     <updated>2016-01-27T00:00:00Z</updated>
     <summary type="html"><![CDATA[<p>It is widely known that left folding can be implemented by right folding. But the implementation is not so obvious. Let’s try writing one from scratch. First, we need these two extensions of GHC to make life better.</p>
-<div class="highlight"><pre><span></span><span class="cm">{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="haskell">{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}</code></pre></div>
 <p>Let’s just ignore the original implementations in <code>Prelude</code> and try writing them by hand:</p>
-<div class="highlight"><pre><span></span><span class="kr">import</span> <span class="nn">Prelude</span> <span class="k">hiding</span> <span class="p">(</span><span class="nf">foldr</span><span class="p">,</span> <span class="nf">foldl</span><span class="p">)</span>
+<div class ="highlight"><pre><code class="haskell">import Prelude hiding (foldr, foldl)
 
-<span class="nf">foldr</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldr</span> <span class="kr">_</span> <span class="n">r</span> <span class="kt">[]</span> <span class="ow">=</span> <span class="n">r</span>
-<span class="nf">foldr</span> <span class="n">f</span> <span class="n">r</span> <span class="p">(</span><span class="n">x</span><span class="kt">:</span><span class="n">xs</span><span class="p">)</span> <span class="ow">=</span> <span class="n">f</span> <span class="n">x</span> <span class="p">(</span><span class="n">foldr</span> <span class="n">f</span> <span class="n">r</span> <span class="n">xs</span><span class="p">)</span>
+foldr :: (b -> a -> a) -> a -> [b] -> a
+foldr _ r [] = r
+foldr f r (x:xs) = f x (foldr f r xs)
 
-<span class="nf">foldl</span> <span class="ow">::</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">r</span> <span class="kt">[]</span> <span class="ow">=</span> <span class="n">r</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">a</span> <span class="p">(</span><span class="n">x</span><span class="kt">:</span><span class="n">xs</span><span class="p">)</span> <span class="ow">=</span> <span class="n">foldl</span> <span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">x</span><span class="p">)</span> <span class="n">xs</span>
-</pre></div>
-
+foldl :: (a -> b -> a) -> a -> [b] -> a
+foldl f r [] = r
+foldl f a (x:xs) = foldl f (f a x) xs</code></pre></div>
 <p>If we want to write <code>foldl</code> using <code>foldr</code>, that defination should looks like this:</p>
-<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span> <span class="n">foldr</span> <span class="n">undefined</span> <span class="n">undefined</span> <span class="n">undefined</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="haskell">foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs = foldr undefined undefined undefined</code></pre></div>
 <p>The only thing we can be sure is that we will still be working on list <code>bs</code>. So let’s refine the above one with this observation:</p>
-<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
-  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="kr">_</span>
-      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
-  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">undefined</span> <span class="n">undefined</span> <span class="n">bs</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="haskell">foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: _ -> _ -> [b] -> _
+      fold = foldr
+  in  fold undefined undefined bs</code></pre></div>
 <p>Let’s think about a small example. According to our original implantation, <code>foldl f i [b1, b2]</code> should be expanded into <code>f (f i b1) b2</code> but the form in <code>foldr g j [b1, b2]</code> is <code>g b1 (b g2 j)</code>. The most important step is the definition of <code>g</code> and <code>j</code>. The function <code>g</code> should have type looks like <code>b -&gt; r -&gt; r</code> and if the first parameter is <code>b1</code>, the second parameter (<code>r</code>) should be able to use <code>f i b1</code> in itself to re-build the original <code>foldl</code> expansion. That sounds like a continuation <code>a -&gt; r</code> instead of just <code>r</code>. Let’s try this idea:</p>
-<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
-  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
-      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
-      <span class="n">g</span> <span class="ow">::</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
-      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">i</span> <span class="n">b1</span><span class="p">)</span>
-  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="haskell">foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: (b -> (a -> r) -> (a -> r)) -> (a -> r) -> [b] -> (a -> r)
+      fold = foldr
+      g :: b -> (a -> r) -> (a -> r)
+      g b1 cont = cont (f i b1)
+  in  fold g undefined bs</code></pre></div>
 <p>Bad thing happens. We get two type errors because now <code>g</code> and <code>fold</code> are of type ending with <code>(a -&gt; r)</code>. Let’s look into them one by one. For <code>g</code>, we are using a <code>b</code> to turn a continuation into another continuation. So <code>g</code> actually need a extra parameter <code>a</code>. And <code>fold</code> return a continuation and need an initial value <code>a</code> to get the final result. Let’s refine the signature and definition:</p>
-<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
-  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
-      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
-      <span class="n">g</span> <span class="ow">::</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
-      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">i</span> <span class="n">b1</span><span class="p">)</span>
-  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span> <span class="n">undefined</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="haskell">foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: (b -> (a -> r) -> (a -> r)) -> (a -> r) -> [b] -> (a -> r)
+      fold = foldr
+      g :: b -> (a -> r) -> (a -> r)
+      g b1 cont a = cont (f i b1)
+  in  fold g undefined bs undefined</code></pre></div>
 <p>Now our compiler warns us that <code>a</code> is not used. According to its type, the only place to use it is where <code>i</code> is. This makes sense because we are using the future result in our computation. But where <code>i</code> should go? The only place seems to using it to complete our <code>fold</code>. (I think this is the only tricky part and hope to find better thoughts on this in the future.) Let’s refine it again:</p>
-<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
-  <span class="kr">let</span> <span class="n">fold</span> <span class="ow">::</span> <span class="p">(</span><span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
-      <span class="n">fold</span> <span class="ow">=</span> <span class="n">foldr</span>
-      <span class="n">g</span> <span class="ow">::</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">r</span><span class="p">)</span>
-      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">b1</span><span class="p">)</span>
-  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span> <span class="n">i</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="haskell">foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: (b -> (a -> r) -> (a -> r)) -> (a -> r) -> [b] -> (a -> r)
+      fold = foldr
+      g :: b -> (a -> r) -> (a -> r)
+      g b1 cont a = cont (f a b1)
+  in  fold g undefined bs i</code></pre></div>
 <p>We are almost done and only one <code>undefined</code> is left. Notice that the final result is of type <code>r</code> but our target type is <code>a</code>. That just means <code>r</code> is <code>a</code>. So the only left <code>undefined</code> is of type <code>forall a. a -&gt; a</code> and its only implantation is <code>id</code> according to parametricity. This also fits our experience with continuation by finishing it with <code>\a -&gt; a</code>. Our final version is:</p>
-<div class="highlight"><pre><span></span><span class="nf">foldl</span> <span class="ow">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span> <span class="ow">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="ow">-&gt;</span> <span class="n">a</span>
-<span class="nf">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="ow">=</span>
-  <span class="kr">let</span> <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="ow">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">b1</span><span class="p">)</span>
-  <span class="kr">in</span>  <span class="n">foldr</span> <span class="n">g</span> <span class="n">id</span> <span class="n">bs</span> <span class="n">i</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="haskell">foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let g b1 cont a = cont (f a b1)
+  in  foldr g id bs i</code></pre></div>
 <p>It works!</p>
-<div class="highlight"><pre><span></span><span class="nf">λ</span><span class="o">&gt;</span> <span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">r</span> <span class="n">x</span> <span class="ow">-&gt;</span> <span class="n">r</span> <span class="o">++</span> <span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="p">[</span><span class="mi">0</span> <span class="ow">::</span> <span class="kt">Int</span><span class="p">]</span> <span class="p">[</span><span class="mi">1</span> <span class="o">..</span> <span class="mi">10</span><span class="p">]</span>
-<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
-</pre></div>
-]]></summary>
+<div class ="highlight"><pre><code class="haskell">λ> foldl (\r x -> r ++ [x]) [0 :: Int] [1 .. 10]
+[0,1,2,3,4,5,6,7,8,9,10]</code></pre></div>]]></summary>
 </entry>
 <entry>
     <title>PFPL 读书笔记和闲言碎语</title>
@@ -161,34 +143,32 @@
 <p><span class="math display">\[ \mathrm{Nat}(h_A,F) \cong F(A). \]</span></p>
 <p>Doesn’t it hurt your brain? The proof is even more tedious. In another way, however, it just states that every object can be determined by how other objects map into it. The interesting thing is, once translated into Haskell, the Yoneda lemma becomes more readable and understandable.</p>
 <p>In Haskell the category <span class="math inline">\(C\)</span> and <span class="math inline">\(Set\)</span> are both <span class="math inline">\(Hask\)</span>, the category of all types in Haskell. And a natural transformation is just a polynomial function which, in this case, from functor <code>(-&gt;) a</code> to functor <code>f</code>. So in Haskell we can write Yoneda lemma as</p>
-<div class ="highlight"><pre>(forall b. (a -> b) -> f b) ~ f a</pre></div>
+<div class ="highlight"><pre><code class="nohighlight">(forall b. (a -> b) -> f b) ~ f a</code></pre></div>
 <p>which means an isomorphism between a polynomial function and a type. This can be interpreted in the following way: for a fixed type <code>a</code> and a functor <code>f</code>, if there is a polynomial function <code>g</code> that knows how to convert any <code>a -&gt; b</code> into <code>f b</code>, then this <code>g</code> is just something holding a <code>f a</code> (and remembering to <code>fmap</code> any <code>a -&gt; b</code> on it), and vice versa.</p>
 <p>To prove this isomorphism, we need to show that for the following two conversion functions:</p>
-<div class="highlight"><pre><span></span><span class="nf">fw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">a</span>
-<span class="nf">fw</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">f</span> <span class="n">id</span>
+<div class ="highlight"><pre><code class="haskell">fw :: (Functor f) => (forall b . (a -> b) -> f b) -> f a
+fw f = f id
 
-<span class="nf">bw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="n">f</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span>
-<span class="nf">bw</span> <span class="n">x</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">fmap</span> <span class="n">f</span> <span class="n">x</span>
-</pre></div>
-
+bw :: (Functor f) => f a -> (forall b . (a -> b) -> f b)
+bw x f = fmap f x</code></pre></div>
 <p>the following two statements are both true:</p>
-<div class ="highlight"><pre>fw . bw = id
-bw . fw = id</pre></div>
+<div class ="highlight"><pre><code class="nohighlight">fw . bw = id
+bw . fw = id</code></pre></div>
 <p>The first one is easy:</p>
-<div class ="highlight"><pre>(fw . bw) fa
+<div class ="highlight"><pre><code class="nohighlight">(fw . bw) fa
 = fw (bw fa)
 = (bw fa) id
 = bw fa id
 = fmap id fa
-= fa</pre></div>
+= fa</code></pre></div>
 <p>and there are two steps notable in the second proof:</p>
-<div class ="highlight"><pre>bw (fw g) a2b
+<div class ="highlight"><pre><code class="nohighlight">bw (fw g) a2b
 = fmap a2b (g id)
 = g (fmap a2b id) (*)
 = g (a2b . id)    (**)
-= g a2b</pre></div>
+= g a2b</code></pre></div>
 <p>In <code>(*)</code> we swap <code>g</code> and <code>fmap a2b</code> when apply them to <code>id</code> in sequence. This is because the <code>forall</code> in the polynomial function <code>g</code> makes it a natural transformation from functor <code>(-&gt; a)</code> to functor <code>f</code> and ensure that the following diagram commute:</p>
-<div class ="highlight"><pre>                  g
+<div class ="highlight"><pre><code class="nohighlight">                  g
       (a -> b) --------> f b
          ^                ^
          |                |
@@ -196,7 +176,7 @@ fmap a2b |                | fmap a2b
          |                |
          |                |
       (a -> a) --------> f a
-                  g</pre></div>
+                  g</code></pre></div>
 <p>Commutation means the both ways from bottom left to top right are the same. So we can swap <code>g</code> and <code>fmap a2b</code>. Also notice that the bottom left is just <code>id</code>. The <code>(**)</code> step is an application of the <code>fmap</code> definition of functor <code>(-&gt; a)</code>, which is just function composition <code>(.)</code>. QED.</p>]]></summary>
 </entry>
 <entry>
@@ -221,58 +201,52 @@ abcba<font color=green>b</font>ababab
 </pre>
 <p>needle 里第一个 b 不行，因为会错过解；最后一个 b 也不行，因为 needle 没有动。所以除了 needle 里最后一个位置之外，倒数第一个配对的字符才是正确的选择。</p>
 <p>所以我们知道如何预处理一下 needle，记录 <strong>needle 每个字符的倒数第一次出现的位置(末尾除外)离 needle 末尾的距离</strong>，来作为跳转步数。不在 needle 里出现的字符对应的跳转步数则为 |needle|。哎呀这个岂不很好写的：</p>
-<div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">UCHAR_MAX</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">UCHAR_MAX</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="n">jmp_table</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nlen</span><span class="p">;</span>
-<span class="kt">int</span> <span class="n">last</span> <span class="o">=</span> <span class="n">nlen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">last</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="n">jmp_table</span><span class="p">[</span><span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="cpp">int jmp_table[UCHAR_MAX+1];
+for(int i = 0; i <= UCHAR_MAX; i++)
+  jmp_table[i] = nlen;
+int last = nlen - 1;
+for(int i = 0; i < last; i++)
+  jmp_table[needle[i]] = last - i;</code></pre></div>
 <p>好了现在我们知道，每次出现不匹配时，找到 haystack 里和 needle 对应的最后一个字符，再在 needle 里找它倒数第一次出现的位置(末尾除外)，然后把它们对齐。就是这么简单。</p>
 <p>完整的 C++ 代码：</p>
-<div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">horspool</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">haystack</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">needle</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">hlen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">haystack</span><span class="p">),</span> <span class="n">nlen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">needle</span><span class="p">);</span>
-  <span class="kt">int</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">UCHAR_MAX</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
-  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">UCHAR_MAX</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-    <span class="n">jmp_table</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nlen</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">last</span> <span class="o">=</span> <span class="n">nlen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">last</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-    <span class="n">jmp_table</span><span class="p">[</span><span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">while</span><span class="p">(</span><span class="n">j</span> <span class="o">&lt;=</span> <span class="n">hlen</span> <span class="o">-</span> <span class="n">nlen</span><span class="p">){</span>
-    <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">haystack</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">last</span><span class="p">];</span>
-    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">last</span><span class="p">;</span>
-    <span class="k">while</span><span class="p">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">haystack</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">--</span><span class="n">i</span><span class="p">;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">return</span> <span class="n">j</span><span class="p">;</span>
-    <span class="n">j</span> <span class="o">+=</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">c</span><span class="p">];</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="cpp">int horspool(char *haystack, char *needle) {
+  int hlen = strlen(haystack), nlen = strlen(needle);
+  int jmp_table[UCHAR_MAX+1];
+  for(int i = 0; i <= UCHAR_MAX; i++)
+    jmp_table[i] = nlen;
+  int last = nlen - 1;
+  for(int i = 0; i < last; i++)
+    jmp_table[needle[i]] = last - i;
+  int j = 0;
+  while(j <= hlen - nlen){
+    char c = haystack[j + last];
+    int i = last;
+    while(i >= 0 && haystack[j + i] == needle[i]) --i;
+    if(i == -1) return j;
+    j += jmp_table[c];
+  }
+  return -1;
+}</code></pre></div>
 <p>简单到 Haskell 的也很好写哇：</p>
-<div class="highlight"><pre><span></span><span class="cm">{-# LANGUAGE OverloadedStrings #-}</span>
-<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Data.Map</span> <span class="k">as</span> <span class="n">M</span> <span class="p">(</span><span class="n">findWithDefault</span><span class="p">,</span> <span class="n">fromList</span><span class="p">)</span>
-<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Data.ByteString</span> <span class="k">as</span> <span class="n">BS</span>
+<div class ="highlight"><pre><code class="haskell">{-# LANGUAGE OverloadedStrings #-}
+import qualified Data.Map as M (findWithDefault, fromList)
+import qualified Data.ByteString as BS
 
-<span class="nf">horspool</span> <span class="ow">::</span> <span class="kt">BS</span><span class="o">.</span><span class="kt">ByteString</span> <span class="ow">-&gt;</span> <span class="kt">BS</span><span class="o">.</span><span class="kt">ByteString</span> <span class="ow">-&gt;</span> <span class="kt">Maybe</span> <span class="kt">Int</span>
-<span class="nf">horspool</span> <span class="n">s</span> <span class="n">p</span> <span class="ow">=</span> <span class="n">f</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-  <span class="kr">where</span> <span class="n">lenp</span> <span class="ow">=</span> <span class="kt">BS</span><span class="o">.</span><span class="n">length</span> <span class="n">p</span>
-        <span class="n">lens</span> <span class="ow">=</span> <span class="kt">BS</span><span class="o">.</span><span class="n">length</span> <span class="n">s</span>
-        <span class="n">jmptbl</span> <span class="ow">=</span> <span class="kt">M</span><span class="o">.</span><span class="n">fromList</span> <span class="o">$</span> <span class="n">zip</span> <span class="p">(</span><span class="kt">BS</span><span class="o">.</span><span class="n">unpack</span> <span class="n">p</span><span class="p">)</span> <span class="p">[</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">lenp</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">..</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">jmp</span> <span class="n">x</span> <span class="ow">=</span> <span class="kt">M</span><span class="o">.</span><span class="n">findWithDefault</span> <span class="n">lenp</span> <span class="n">x</span> <span class="n">jmptbl</span>
-        <span class="n">f</span> <span class="n">i</span> <span class="n">j</span> <span class="n">k</span>
-          <span class="o">|</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">lens</span> <span class="ow">=</span> <span class="kt">Nothing</span>
-          <span class="o">|</span> <span class="n">j</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">=</span> <span class="kt">Just</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-          <span class="o">|</span> <span class="n">s</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">i</span> <span class="o">==</span> <span class="n">p</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">j</span> <span class="ow">=</span> <span class="n">f</span> <span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">k</span>
-          <span class="o">|</span> <span class="n">otherwise</span> <span class="ow">=</span> <span class="kr">let</span> <span class="n">k&#39;</span> <span class="ow">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">jmp</span> <span class="p">(</span><span class="n">s</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">k</span><span class="p">)</span>
-                         <span class="kr">in</span> <span class="n">f</span> <span class="n">k&#39;</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="n">k&#39;</span>
+horspool :: BS.ByteString -> BS.ByteString -> Maybe Int
+horspool s p = f (lenp - 1) (lenp - 1) (lenp - 1)
+  where lenp = BS.length p
+        lens = BS.length s
+        jmptbl = M.fromList $ zip (BS.unpack p) [lenp - 1, lenp - 2 .. 1]
+        jmp x = M.findWithDefault lenp x jmptbl
+        f i j k
+          | i >= lens = Nothing
+          | j == -1 = Just (i + 1)
+          | s `BS.index` i == p `BS.index` j = f (i-1) (j-1) k
+          | otherwise = let k' = k + jmp (s `BS.index` k)
+                         in f k' (lenp - 1) k'
 
-<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
-<span class="nf">main</span> <span class="ow">=</span> <span class="n">print</span> <span class="o">$</span> <span class="n">horspool</span> <span class="s">&quot;abcbabababab&quot;</span> <span class="s">&quot;cbabab&quot;</span>
-</pre></div>
-]]></summary>
+main :: IO ()
+main = print $ horspool "abcbabababab" "cbabab"</code></pre></div>]]></summary>
 </entry>
 <entry>
     <title>用 Coq 来证明“今天”是周几</title>
@@ -289,71 +263,63 @@ abcba<font color=green>b</font>ababab
 </del>
 <p>好吧，脑洞打开的话，确实可以有另一种理解。 拿 <a href="http://zh.wikipedia.org/zh/Coq">Coq</a> 来证明下：</p>
 <p>星期几的定义：</p>
-<div class="highlight"><pre><span></span><span class="kn">Inductive</span> <span class="n">day</span> <span class="o">:</span> <span class="kt">Type</span> <span class="o">:=</span>
-  <span class="o">|</span> <span class="n">monday</span> <span class="o">:</span> <span class="n">day</span>
-  <span class="o">|</span> <span class="n">tuesday</span> <span class="o">:</span> <span class="n">day</span>
-  <span class="o">|</span> <span class="n">wednesday</span> <span class="o">:</span> <span class="n">day</span>
-  <span class="o">|</span> <span class="n">thursday</span> <span class="o">:</span> <span class="n">day</span>
-  <span class="o">|</span> <span class="n">friday</span> <span class="o">:</span> <span class="n">day</span>
-  <span class="o">|</span> <span class="n">saturday</span> <span class="o">:</span> <span class="n">day</span>
-  <span class="o">|</span> <span class="n">sunday</span> <span class="o">:</span> <span class="n">day</span><span class="o">.</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="nohighlight">Inductive day : Type :=
+  | monday : day
+  | tuesday : day
+  | wednesday : day
+  | thursday : day
+  | friday : day
+  | saturday : day
+  | sunday : day.</code></pre></div>
 <p>昨天和明天的定义其实都是函数（更严格来说应该是双射，不过足够了）：</p>
-<div class="highlight"><pre><span></span><span class="kn">Definition</span> <span class="n">next</span> <span class="o">(</span><span class="n">d</span><span class="o">:</span><span class="n">day</span><span class="o">)</span> <span class="o">:</span> <span class="n">day</span> <span class="o">:=</span>
-  <span class="k">match</span> <span class="n">d</span> <span class="k">with</span>
-  <span class="o">|</span> <span class="n">monday</span>    <span class="o">=&gt;</span> <span class="n">tuesday</span>
-  <span class="o">|</span> <span class="n">tuesday</span>   <span class="o">=&gt;</span> <span class="n">wednesday</span>
-  <span class="o">|</span> <span class="n">wednesday</span> <span class="o">=&gt;</span> <span class="n">thursday</span>
-  <span class="o">|</span> <span class="n">thursday</span>  <span class="o">=&gt;</span> <span class="n">friday</span>
-  <span class="o">|</span> <span class="n">friday</span>    <span class="o">=&gt;</span> <span class="n">saturday</span>
-  <span class="o">|</span> <span class="n">saturday</span>  <span class="o">=&gt;</span> <span class="n">sunday</span>
-  <span class="o">|</span> <span class="n">sunday</span>    <span class="o">=&gt;</span> <span class="n">monday</span>
-  <span class="k">end</span><span class="o">.</span>
+<div class ="highlight"><pre><code class="nohighlight">Definition next (d:day) : day :=
+  match d with
+  | monday    => tuesday
+  | tuesday   => wednesday
+  | wednesday => thursday
+  | thursday  => friday
+  | friday    => saturday
+  | saturday  => sunday
+  | sunday    => monday
+  end.
 
-<span class="kn">Definition</span> <span class="n">prev</span> <span class="o">(</span><span class="n">d</span><span class="o">:</span><span class="n">day</span><span class="o">)</span> <span class="o">:</span> <span class="n">day</span> <span class="o">:=</span>
-  <span class="k">match</span> <span class="n">d</span> <span class="k">with</span>
-  <span class="o">|</span> <span class="n">monday</span>    <span class="o">=&gt;</span> <span class="n">sunday</span>
-  <span class="o">|</span> <span class="n">tuesday</span>   <span class="o">=&gt;</span> <span class="n">monday</span>
-  <span class="o">|</span> <span class="n">wednesday</span> <span class="o">=&gt;</span> <span class="n">tuesday</span>
-  <span class="o">|</span> <span class="n">thursday</span>  <span class="o">=&gt;</span> <span class="n">wednesday</span>
-  <span class="o">|</span> <span class="n">friday</span>    <span class="o">=&gt;</span> <span class="n">thursday</span>
-  <span class="o">|</span> <span class="n">saturday</span>  <span class="o">=&gt;</span> <span class="n">friday</span>
-  <span class="o">|</span> <span class="n">sunday</span>    <span class="o">=&gt;</span> <span class="n">saturday</span>
-  <span class="k">end</span><span class="o">.</span>
-</pre></div>
-
+Definition prev (d:day) : day :=
+  match d with
+  | monday    => sunday
+  | tuesday   => monday
+  | wednesday => tuesday
+  | thursday  => wednesday
+  | friday    => thursday
+  | saturday  => friday
+  | sunday    => saturday
+  end.</code></pre></div>
 <p>开始证明。因为数学上不可能有 <code>昨天 = 明天</code>，所以实际上可以存在两种理解：<br />
 <code>(想象中今天的)昨天 = (实际的今天的)明天</code> 和 <code>(实际今天的)昨天 = (想象中今天的)明天</code>。</p>
 <p>第一种比较符合多数人的理解：</p>
-<div class="highlight"><pre><span></span><span class="kn">Lemma</span> <span class="n">today_is_wednesday</span> <span class="o">:</span>
-  <span class="k">forall</span> <span class="n">today</span> <span class="n">real_today</span><span class="o">,</span>
-  <span class="c">(* (想象中今天的)昨天 = (实际的今天的)明天 *)</span>
-    <span class="n">prev</span> <span class="n">today</span> <span class="o">=</span> <span class="n">next</span> <span class="n">real_today</span> <span class="o">-&gt;</span>
-  <span class="c">(* (想象中的)今天 = 星期五 *)</span>
-    <span class="n">today</span> <span class="o">=</span> <span class="n">friday</span> <span class="o">-&gt;</span>
-  <span class="c">(* 那么，(实际的)今天 = 星期三 *)</span>
-    <span class="n">real_today</span> <span class="o">=</span> <span class="n">wednesday</span><span class="o">.</span>
-<span class="kn">Proof</span><span class="o">.</span>
-  <span class="k">intros</span><span class="o">.</span> <span class="k">subst</span><span class="o">.</span> <span class="k">destruct</span> <span class="n">real_today</span><span class="o">;</span> <span class="k">inversion</span> <span class="n">H</span><span class="o">.</span> <span class="kp">reflexivity</span><span class="o">.</span>
-<span class="kn">Qed</span><span class="o">.</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="nohighlight">Lemma today_is_wednesday :
+  forall today real_today,
+  (* (想象中今天的)昨天 = (实际的今天的)明天 *)
+    prev today = next real_today ->
+  (* (想象中的)今天 = 星期五 *)
+    today = friday ->
+  (* 那么，(实际的)今天 = 星期三 *)
+    real_today = wednesday.
+Proof.
+  intros. subst. destruct real_today; inversion H. reflexivity.
+Qed.</code></pre></div>
 <p>第二种脑洞打开的话也不是完全没有道理……</p>
-<div class="highlight"><pre><span></span><span class="kn">Lemma</span> <span class="n">today_is_sunday</span> <span class="o">:</span>
-  <span class="k">forall</span> <span class="n">today</span> <span class="n">real_today</span><span class="o">,</span>
-  <span class="c">(* (实际的今天的)昨天 = (想象中今天的)明天 *)</span>
-    <span class="n">prev</span> <span class="n">real_today</span> <span class="o">=</span> <span class="n">next</span> <span class="n">today</span> <span class="o">-&gt;</span>
-  <span class="c">(* (想象中的)今天 = 星期五 *)</span>
-    <span class="n">today</span> <span class="o">=</span> <span class="n">friday</span> <span class="o">-&gt;</span>
-  <span class="c">(* 那么，(实际的)今天 = 星期日 *)</span>
-    <span class="n">real_today</span> <span class="o">=</span> <span class="n">sunday</span><span class="o">.</span>
+<div class ="highlight"><pre><code class="nohighlight">Lemma today_is_sunday :
+  forall today real_today,
+  (* (实际的今天的)昨天 = (想象中今天的)明天 *)
+    prev real_today = next today ->
+  (* (想象中的)今天 = 星期五 *)
+    today = friday ->
+  (* 那么，(实际的)今天 = 星期日 *)
+    real_today = sunday.
 
-<span class="kn">Proof</span><span class="o">.</span>
-  <span class="k">intros</span><span class="o">.</span> <span class="k">subst</span><span class="o">.</span> <span class="k">destruct</span> <span class="n">real_today</span><span class="o">;</span> <span class="k">inversion</span> <span class="n">H</span><span class="o">.</span> <span class="kp">reflexivity</span><span class="o">.</span>
-<span class="kn">Qed</span><span class="o">.</span>
-</pre></div>
-
+Proof.
+  intros. subst. destruct real_today; inversion H. reflexivity.
+Qed.</code></pre></div>
 <p>证明对 Coq 来说很简单，基本上就是枚举所有可能性，要么成立要么反证法什么的，就不赘述了。</p>]]></summary>
 </entry>
 <entry>
@@ -397,12 +363,12 @@ abcba<font color=green>b</font>ababab
 <p>Get a pre-built <a href="http://www.haskell.org/cabal/download.html">cabal.exe</a>. And put it into the above path.</p>
 <p>Following command are executed under <a href="http://www.mingw.org/wiki/msys">MSYS</a>. <code>Cygwin</code> just fails.</p>
 <p>Get packages list from hackage:</p>
-<div class ="highlight"><pre>$ cabal update</pre></div>
+<div class ="highlight"><pre><code class="nohighlight">$ cabal update</code></pre></div>
 <p>If it tells you to <code>cabal install cabal-install</code>, don’t believe it :)</p>
 <p>We first get a right version of cabal and then the latest cabal-install:</p>
-<div class ="highlight"><pre>$ cabal install cabal
+<div class ="highlight"><pre><code class="nohighlight">$ cabal install cabal
 $ export PATH="/c/Program Files/haskell/perl":"/c/Program Files/haskell/mingw/bin":$PATH
-$ cabal install cabal-install</pre></div>
+$ cabal install cabal-install</code></pre></div>
 <p>Replace our original <code>cabal.exe</code> by the one built in <code>C:\Users\USERNAME\AppData\Roaming\cabal\bin\</code>. Also add the above path into <code>PATH</code>.</p>
 <p>Now we have the latest <code>GHC</code> and <code>Cabal-Install</code> :)</p>]]></summary>
 </entry>
@@ -419,90 +385,76 @@ $ cabal install cabal-install</pre></div>
 <p>The purpose is to use a certain number of triangles to approximate an image. A lot of works have been done on this in various programming languages. But let’s try it by hand and in Python.</p>
 <p>The idea of genetic algorithm is repeatedly evolution on a population of DNA. Good DNA are kept and used to generate the next generation through crossover and mutation. In plain words, crossover is exchanging small parts between two DNA and mutation is random change on one DNA.</p>
 <p>First, we need to import something:</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">deap</span> <span class="kn">import</span> <span class="n">base</span><span class="p">,</span> <span class="n">creator</span><span class="p">,</span> <span class="n">tools</span><span class="p">,</span> <span class="n">algorithms</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageDraw</span>
-<span class="o">...</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="python">from deap import base, creator, tools, algorithms
+from PIL import Image, ImageDraw
+...</code></pre></div>
 <p>Let’s fix some constants. The size of image is restricted to be 100x100. Each generation contains a population of 40 individuals. And the DNA of each individual is just a set of 50 triangles.</p>
-<div class="highlight"><pre><span></span><span class="n">PIC</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;head.jpg&#39;</span><span class="p">)</span>
-<span class="n">SIZE</span> <span class="o">=</span> <span class="mi">100</span>
-<span class="n">NUMBER_OF_TRIANGLES</span> <span class="o">=</span> <span class="mi">50</span>
-<span class="n">POPULATION</span> <span class="o">=</span> <span class="mi">40</span>
-<span class="n">NGEN</span> <span class="o">=</span> <span class="mi">10000</span>
-<span class="n">POLY</span> <span class="o">=</span> <span class="mi">3</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="python">PIC = Image.open('head.jpg')
+SIZE = 100
+NUMBER_OF_TRIANGLES = 50
+POPULATION = 40
+NGEN = 10000
+POLY = 3</code></pre></div>
 <p>We need <code>gen_one_triangle()</code> to generate one triangle in random position with random color and transparency.</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_one_triangle</span><span class="p">():</span>
-    <span class="k">return</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">([(</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">POLY</span><span class="p">)]),</span>
-            <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">),</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="python">def gen_one_triangle():
+    return (tuple([(randint(0, SIZE), randint(0, SIZE)) for i in xrange(POLY)]),
+            randint(0,255), randint(0,255), randint(0,255), randint(0,30))</code></pre></div>
 <p>With DEAP, we define some classes and the initial part:</p>
-<div class="highlight"><pre><span></span><span class="n">creator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;Fitness&quot;</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">Fitness</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,))</span>  <span class="c1"># maximize fitness</span>
-<span class="n">creator</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;Individual&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">fitness</span><span class="o">=</span><span class="n">creator</span><span class="o">.</span><span class="n">Fitness</span><span class="p">)</span>  <span class="c1"># individual class</span>
+<div class ="highlight"><pre><code class="python">creator.create("Fitness", base.Fitness, weights=(1.0,))  # maximize fitness
+creator.create("Individual", list, fitness=creator.Fitness)  # individual class
 
-<span class="n">toolbox</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">Toolbox</span><span class="p">()</span>
-<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;attr&quot;</span><span class="p">,</span> <span class="n">gen_one_triangle</span><span class="p">)</span>  <span class="c1"># the above function</span>
-<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;individual&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span>  <span class="c1"># initialization of individual</span>
-                 <span class="n">creator</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="n">NUMBER_OF_TRIANGLES</span><span class="p">)</span>
-<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;population&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">initRepeat</span><span class="p">,</span>  <span class="c1"># initialization of population</span>
-                 <span class="nb">list</span><span class="p">,</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">individual</span><span class="p">)</span>
-</pre></div>
-
+toolbox = base.Toolbox()
+toolbox.register("attr", gen_one_triangle)  # the above function
+toolbox.register("individual", tools.initRepeat,  # initialization of individual
+                 creator.Individual, toolbox.attr, NUMBER_OF_TRIANGLES)
+toolbox.register("population", tools.initRepeat,  # initialization of population
+                 list, toolbox.individual)</code></pre></div>
 <p>Now we should figure out how to evaluate the intermediate result (50 triangles). I draw them on an blank background and do pixel by pixel comparison with the origin image:</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">triangles_to_image</span><span class="p">(</span><span class="n">triangles</span><span class="p">):</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">SIZE</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">),</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">tri</span> <span class="ow">in</span> <span class="n">triangles</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGBA&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">SIZE</span><span class="p">,</span> <span class="n">SIZE</span><span class="p">))</span>
-        <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-        <span class="n">draw</span><span class="o">.</span><span class="n">polygon</span><span class="p">(</span><span class="n">tri</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fill</span><span class="o">=</span><span class="n">tri</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-        <span class="n">im</span><span class="o">.</span><span class="n">paste</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
-        <span class="k">del</span> <span class="n">mask</span><span class="p">,</span> <span class="n">draw</span>
-    <span class="k">return</span> <span class="n">im</span>
+<div class ="highlight"><pre><code class="python">def triangles_to_image(triangles):
+    im = Image.new('RGB', (SIZE, SIZE), (255, 255, 255))
+    for tri in triangles:
+        mask = Image.new('RGBA', (SIZE, SIZE))
+        draw = ImageDraw.Draw(mask)
+        draw.polygon(tri[0], fill=tri[1:])
+        im.paste(mask, mask=mask)
+        del mask, draw
+    return im
 
-<span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">im1</span><span class="p">,</span> <span class="n">t2</span><span class="p">):</span>
-    <span class="n">im2</span> <span class="o">=</span> <span class="n">triangles_to_image</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
-    <span class="n">pix1</span><span class="p">,</span> <span class="n">pix2</span> <span class="o">=</span> <span class="n">im1</span><span class="o">.</span><span class="n">load</span><span class="p">(),</span> <span class="n">im2</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-    <span class="n">ans</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">SIZE</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">SIZE</span><span class="p">):</span>
-            <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span> <span class="o">=</span> <span class="n">pix1</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
-            <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b3</span> <span class="o">=</span> <span class="n">pix2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
-            <span class="n">ans</span> <span class="o">+=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">-</span> <span class="n">b1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">a2</span> <span class="o">-</span> <span class="n">b2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">a3</span> <span class="o">-</span> <span class="n">b3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">ans</span><span class="p">)</span> <span class="o">/</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">SIZE</span> <span class="o">*</span> <span class="n">SIZE</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">255</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)),</span>
+def evaluate(im1, t2):
+    im2 = triangles_to_image(t2)
+    pix1, pix2 = im1.load(), im2.load()
+    ans = 0
+    for i in xrange(SIZE):
+        for j in xrange(SIZE):
+            a1, a2, a3 = pix1[i, j]
+            b1, b2, b3 = pix2[i, j]
+            ans += (a1 - b1) ** 2 + (a2 - b2) ** 2 + (a3 - b3) ** 2
+    return 1 - (1. * sqrt(ans) / sqrt(SIZE * SIZE * 3 * 255 * 255)),
 
-<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;evaluate&quot;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">PIC</span><span class="p">))</span>
-</pre></div>
-
+toolbox.register("evaluate", partial(evaluate, PIC))</code></pre></div>
 <p>For crossover we use the default function in DEAP to work on sequences. And we define a <code>mutate</code> function to change position or color of one triangle in individual. (That function is a bit long and boring. Let’s skip it …) We also use the default select function in DEAP. Register them:</p>
-<div class="highlight"><pre><span></span><span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;evaluate&quot;</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">evaluate</span><span class="p">,</span> <span class="n">PIC</span><span class="p">))</span>
-<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;mate&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">cxTwoPoint</span><span class="p">)</span>  <span class="c1"># crossover</span>
-<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;mutate&quot;</span><span class="p">,</span> <span class="n">mutate</span><span class="p">)</span>  <span class="c1"># mutation</span>
-<span class="n">toolbox</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;select&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">.</span><span class="n">selTournament</span><span class="p">,</span> <span class="n">tournsize</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</pre></div>
-
+<div class ="highlight"><pre><code class="python">toolbox.register("evaluate", partial(evaluate, PIC))
+toolbox.register("mate", tools.cxTwoPoint)  # crossover
+toolbox.register("mutate", mutate)  # mutation
+toolbox.register("select", tools.selTournament, tournsize=3)</code></pre></div>
 <p>Finally, in the <code>main</code> function we just call the algorithm function in one line.</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="n">pop</span> <span class="o">=</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">population</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">POPULATION</span><span class="p">)</span>
-    <span class="n">hof</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">HallOfFame</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<div class ="highlight"><pre><code class="python">def main():
+    pop = toolbox.population(n=POPULATION)
+    hof = tools.HallOfFame(1)
 
-    <span class="n">stats</span> <span class="o">=</span> <span class="n">tools</span><span class="o">.</span><span class="n">Statistics</span><span class="p">(</span><span class="k">lambda</span> <span class="n">ind</span><span class="p">:</span> <span class="n">ind</span><span class="o">.</span><span class="n">fitness</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
-    <span class="n">stats</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">)</span>
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
+    stats.register("std", numpy.std)
+    stats.register("max", numpy.max)
+    stats.register("avg", numpy.mean)
+    stats.register("min", numpy.min)
 
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">pop</span><span class="p">,</span> <span class="n">log</span> <span class="o">=</span> <span class="n">algorithms</span><span class="o">.</span><span class="n">eaSimple</span><span class="p">(</span>
-            <span class="n">pop</span><span class="p">,</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">cxpb</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">mutpb</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">ngen</span><span class="o">=</span><span class="n">NGEN</span><span class="p">,</span> <span class="n">stats</span><span class="o">=</span><span class="n">stats</span><span class="p">,</span>
-            <span class="n">halloffame</span><span class="o">=</span><span class="n">hof</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">finally</span><span class="p">:</span>
-        <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;result.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-        <span class="n">triangles_to_image</span><span class="p">(</span><span class="n">hof</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;result.bmp&#39;</span><span class="p">)</span>
-</pre></div>
-
+    try:
+        pop, log = algorithms.eaSimple(
+            pop, toolbox, cxpb=0.5, mutpb=0.1, ngen=NGEN, stats=stats,
+            halloffame=hof, verbose=True)
+    finally:
+        open('result.txt', 'w').write(repr(hof[0]))
+        triangles_to_image(hof[0]).save('result.bmp')</code></pre></div>
 <p>The picture in the head of this blog is generated through 10,000 generations within sevaral hours.<br />
 The full source code is <a href="https://gist.github.com/scturtle/11035675">here</a>. Feel free to play with it.</p>]]></summary>
 </entry>

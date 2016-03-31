@@ -7,7 +7,9 @@
     <title>ScTurtle's Pool  - 字符串搜索的 Horspool 算法 </title>
     <link rel="shortcut icon" href="../images/favicon.png">
     <link rel="stylesheet" type="text/css" href="../asserts/default.css">
-    <link rel="stylesheet" type="text/css" href="../asserts/pygments.css">
+    <link rel="stylesheet" type="text/css" href="../asserts/highlight.css">
+    <script src="../asserts/highlight.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
     <link href="../atom.xml" rel="alternate" title="ScTurtle's Pool" type="application/atom+xml">
   </head>
   <body>
@@ -46,58 +48,52 @@ abcba<font color="green">b</font>ababab
 </pre>
 <p>needle 里第一个 b 不行，因为会错过解；最后一个 b 也不行，因为 needle 没有动。所以除了 needle 里最后一个位置之外，倒数第一个配对的字符才是正确的选择。</p>
 <p>所以我们知道如何预处理一下 needle，记录 <strong>needle 每个字符的倒数第一次出现的位置(末尾除外)离 needle 末尾的距离</strong>，来作为跳转步数。不在 needle 里出现的字符对应的跳转步数则为 |needle|。哎呀这个岂不很好写的：</p>
-<div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">UCHAR_MAX</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">UCHAR_MAX</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="n">jmp_table</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nlen</span><span class="p">;</span>
-<span class="kt">int</span> <span class="n">last</span> <span class="o">=</span> <span class="n">nlen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">last</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="n">jmp_table</span><span class="p">[</span><span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
-</pre></div>
-
+<div class="highlight"><pre><code class="cpp">int jmp_table[UCHAR_MAX+1];
+for(int i = 0; i <= UCHAR_MAX; i++)
+  jmp_table[i] = nlen;
+int last = nlen - 1;
+for(int i = 0; i < last; i++)
+  jmp_table[needle[i]] = last - i;</code></pre></div>
 <p>好了现在我们知道，每次出现不匹配时，找到 haystack 里和 needle 对应的最后一个字符，再在 needle 里找它倒数第一次出现的位置(末尾除外)，然后把它们对齐。就是这么简单。</p>
 <p>完整的 C++ 代码：</p>
-<div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">horspool</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">haystack</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">needle</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">hlen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">haystack</span><span class="p">),</span> <span class="n">nlen</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">needle</span><span class="p">);</span>
-  <span class="kt">int</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">UCHAR_MAX</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
-  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">UCHAR_MAX</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-    <span class="n">jmp_table</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">nlen</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">last</span> <span class="o">=</span> <span class="n">nlen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">last</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-    <span class="n">jmp_table</span><span class="p">[</span><span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">i</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">while</span><span class="p">(</span><span class="n">j</span> <span class="o">&lt;=</span> <span class="n">hlen</span> <span class="o">-</span> <span class="n">nlen</span><span class="p">){</span>
-    <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">haystack</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">last</span><span class="p">];</span>
-    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">last</span><span class="p">;</span>
-    <span class="k">while</span><span class="p">(</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">haystack</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">needle</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">--</span><span class="n">i</span><span class="p">;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">return</span> <span class="n">j</span><span class="p">;</span>
-    <span class="n">j</span> <span class="o">+=</span> <span class="n">jmp_table</span><span class="p">[</span><span class="n">c</span><span class="p">];</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
+<div class="highlight"><pre><code class="cpp">int horspool(char *haystack, char *needle) {
+  int hlen = strlen(haystack), nlen = strlen(needle);
+  int jmp_table[UCHAR_MAX+1];
+  for(int i = 0; i <= UCHAR_MAX; i++)
+    jmp_table[i] = nlen;
+  int last = nlen - 1;
+  for(int i = 0; i < last; i++)
+    jmp_table[needle[i]] = last - i;
+  int j = 0;
+  while(j <= hlen - nlen){
+    char c = haystack[j + last];
+    int i = last;
+    while(i >= 0 && haystack[j + i] == needle[i]) --i;
+    if(i == -1) return j;
+    j += jmp_table[c];
+  }
+  return -1;
+}</code></pre></div>
 <p>简单到 Haskell 的也很好写哇：</p>
-<div class="highlight"><pre><span></span><span class="cm">{-# LANGUAGE OverloadedStrings #-}</span>
-<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Data.Map</span> <span class="k">as</span> <span class="n">M</span> <span class="p">(</span><span class="n">findWithDefault</span><span class="p">,</span> <span class="n">fromList</span><span class="p">)</span>
-<span class="kr">import</span> <span class="k">qualified</span> <span class="nn">Data.ByteString</span> <span class="k">as</span> <span class="n">BS</span>
+<div class="highlight"><pre><code class="haskell">{-# LANGUAGE OverloadedStrings #-}
+import qualified Data.Map as M (findWithDefault, fromList)
+import qualified Data.ByteString as BS
 
-<span class="nf">horspool</span> <span class="ow">::</span> <span class="kt">BS</span><span class="o">.</span><span class="kt">ByteString</span> <span class="ow">-&gt;</span> <span class="kt">BS</span><span class="o">.</span><span class="kt">ByteString</span> <span class="ow">-&gt;</span> <span class="kt">Maybe</span> <span class="kt">Int</span>
-<span class="nf">horspool</span> <span class="n">s</span> <span class="n">p</span> <span class="ow">=</span> <span class="n">f</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-  <span class="kr">where</span> <span class="n">lenp</span> <span class="ow">=</span> <span class="kt">BS</span><span class="o">.</span><span class="n">length</span> <span class="n">p</span>
-        <span class="n">lens</span> <span class="ow">=</span> <span class="kt">BS</span><span class="o">.</span><span class="n">length</span> <span class="n">s</span>
-        <span class="n">jmptbl</span> <span class="ow">=</span> <span class="kt">M</span><span class="o">.</span><span class="n">fromList</span> <span class="o">$</span> <span class="n">zip</span> <span class="p">(</span><span class="kt">BS</span><span class="o">.</span><span class="n">unpack</span> <span class="n">p</span><span class="p">)</span> <span class="p">[</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">lenp</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">..</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">jmp</span> <span class="n">x</span> <span class="ow">=</span> <span class="kt">M</span><span class="o">.</span><span class="n">findWithDefault</span> <span class="n">lenp</span> <span class="n">x</span> <span class="n">jmptbl</span>
-        <span class="n">f</span> <span class="n">i</span> <span class="n">j</span> <span class="n">k</span>
-          <span class="o">|</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">lens</span> <span class="ow">=</span> <span class="kt">Nothing</span>
-          <span class="o">|</span> <span class="n">j</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">=</span> <span class="kt">Just</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-          <span class="o">|</span> <span class="n">s</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">i</span> <span class="o">==</span> <span class="n">p</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">j</span> <span class="ow">=</span> <span class="n">f</span> <span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">k</span>
-          <span class="o">|</span> <span class="n">otherwise</span> <span class="ow">=</span> <span class="kr">let</span> <span class="n">k'</span> <span class="ow">=</span> <span class="n">k</span> <span class="o">+</span> <span class="n">jmp</span> <span class="p">(</span><span class="n">s</span> <span class="p">`</span><span class="kt">BS</span><span class="o">.</span><span class="n">index</span><span class="p">`</span> <span class="n">k</span><span class="p">)</span>
-                         <span class="kr">in</span> <span class="n">f</span> <span class="n">k'</span> <span class="p">(</span><span class="n">lenp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="n">k'</span>
+horspool :: BS.ByteString -> BS.ByteString -> Maybe Int
+horspool s p = f (lenp - 1) (lenp - 1) (lenp - 1)
+  where lenp = BS.length p
+        lens = BS.length s
+        jmptbl = M.fromList $ zip (BS.unpack p) [lenp - 1, lenp - 2 .. 1]
+        jmp x = M.findWithDefault lenp x jmptbl
+        f i j k
+          | i >= lens = Nothing
+          | j == -1 = Just (i + 1)
+          | s `BS.index` i == p `BS.index` j = f (i-1) (j-1) k
+          | otherwise = let k' = k + jmp (s `BS.index` k)
+                         in f k' (lenp - 1) k'
 
-<span class="nf">main</span> <span class="ow">::</span> <span class="kt">IO</span> <span class="nb">()</span>
-<span class="nf">main</span> <span class="ow">=</span> <span class="n">print</span> <span class="o">$</span> <span class="n">horspool</span> <span class="s">&quot;abcbabababab&quot;</span> <span class="s">&quot;cbabab&quot;</span>
-</pre></div>
-
+main :: IO ()
+main = print $ horspool "abcbabababab" "cbabab"</code></pre></div>
 
 <div id="show_disqus">
   <a onclick="load_disqus();return false;" href="##">Show comments</a>
