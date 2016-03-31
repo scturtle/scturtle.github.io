@@ -1,0 +1,10 @@
+---
+title: Snake AI in python
+tags: python
+---
+
+Simple snake AI demo in python and pygame.
+Inspired by [this blog](http://hawstein.com/posts/snake-ai.html).
+Code is [here](https://gist.github.com/scturtle/5678355).
+
+![](http://dl.dropboxusercontent.com/u/1551217/share/snake.gif)

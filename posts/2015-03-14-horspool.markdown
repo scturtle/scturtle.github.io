@@ -1,0 +1,82 @@
+---
+title: 字符串搜索的 Horspool 算法
+tags: algo
+---
+
+>当你要手写一个字符串搜索算法，你会写什么？
+
+本文将要介绍的 Horspool 算法简单又不慢，一看就懂，一学就会，一写就过！
+
+假设我们要在一个叫 haystack 的字符串中搜索另一个叫 needle 的字符串。先对齐，从后往前搜到某个不匹配的字符：
+
+<pre>
+ab<font color=red>c</font><font color=green>bab</font>ababab
+cb<font color=red>a</font><font color=green>bab</font>
+</pre>
+
+我们可以把 needle 右移一位然后重新从最后一个开始匹配，这是最朴素的算法。但是我们可不可以多移几位呢？我们看 haystack 中的第三个 b，一个策略是移动 needle 使得这个 b 和 needle 里倒数第二个 b 对齐来，这样 needle 移了两个位置。
+
+<pre>
+abcba<font color=green>b</font>ababab
+  cba<font color=green>b</font>ab
+</pre>
+
+needle 里第一个 b 不行，因为会错过解；最后一个 b 也不行，因为 needle 没有动。所以除了 needle 里最后一个位置之外，倒数第一个配对的字符才是正确的选择。
+
+所以我们知道如何预处理一下 needle，记录 **needle 每个字符的倒数第一次出现的位置(末尾除外)离 needle 末尾的距离**，来作为跳转步数。不在 needle 里出现的字符对应的跳转步数则为 |needle|。哎呀这个岂不很好写的：
+
+```cpp
+int jmp_table[UCHAR_MAX+1];
+for(int i = 0; i <= UCHAR_MAX; i++)
+  jmp_table[i] = nlen;
+int last = nlen - 1;
+for(int i = 0; i < last; i++)
+  jmp_table[needle[i]] = last - i;
+```
+
+好了现在我们知道，每次出现不匹配时，找到 haystack 里和 needle 对应的最后一个字符，再在 needle 里找它倒数第一次出现的位置(末尾除外)，然后把它们对齐。就是这么简单。
+
+完整的 C++ 代码：
+```cpp
+int horspool(char *haystack, char *needle) {
+  int hlen = strlen(haystack), nlen = strlen(needle);
+  int jmp_table[UCHAR_MAX+1];
+  for(int i = 0; i <= UCHAR_MAX; i++)
+    jmp_table[i] = nlen;
+  int last = nlen - 1;
+  for(int i = 0; i < last; i++)
+    jmp_table[needle[i]] = last - i;
+  int j = 0;
+  while(j <= hlen - nlen){
+    char c = haystack[j + last];
+    int i = last;
+    while(i >= 0 && haystack[j + i] == needle[i]) --i;
+    if(i == -1) return j;
+    j += jmp_table[c];
+  }
+  return -1;
+}
+```
+
+简单到 Haskell 的也很好写哇：
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+import qualified Data.Map as M (findWithDefault, fromList)
+import qualified Data.ByteString as BS
+
+horspool :: BS.ByteString -> BS.ByteString -> Maybe Int
+horspool s p = f (lenp - 1) (lenp - 1) (lenp - 1)
+  where lenp = BS.length p
+        lens = BS.length s
+        jmptbl = M.fromList $ zip (BS.unpack p) [lenp - 1, lenp - 2 .. 1]
+        jmp x = M.findWithDefault lenp x jmptbl
+        f i j k
+          | i >= lens = Nothing
+          | j == -1 = Just (i + 1)
+          | s `BS.index` i == p `BS.index` j = f (i-1) (j-1) k
+          | otherwise = let k' = k + jmp (s `BS.index` k)
+                         in f k' (lenp - 1) k'
+
+main :: IO ()
+main = print $ horspool "abcbabababab" "cbabab"
+```

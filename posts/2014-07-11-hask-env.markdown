@@ -1,0 +1,33 @@
+---
+title: Minimal Haskell Environment With Latest GHC and Cabal-Install on Windows
+tags: haskell
+---
+
+Delete old environment if you have `C:\Users\USERNAME\AppData\Roaming\cabal` and `C:\Users\USERNAME\AppData\Roaming\ghc`.
+
+Download [latest GHC](http://www.haskell.org/ghc/) and unzip it to `C:\Program Files\haskell`.
+
+Add `C:\Program Files\haskell\bin\` into `PATH`.
+
+Get a pre-built [cabal.exe](http://www.haskell.org/cabal/download.html).
+And put it into the above path.
+
+Following command are executed under [MSYS](http://www.mingw.org/wiki/msys). `Cygwin` just fails.
+
+Get packages list from hackage:
+```
+$ cabal update
+```
+If it tells you to `cabal install cabal-install`, don't believe it :)
+
+We first get a right version of cabal and then the latest cabal-install:
+```
+$ cabal install cabal
+$ export PATH="/c/Program Files/haskell/perl":"/c/Program Files/haskell/mingw/bin":$PATH
+$ cabal install cabal-install
+```
+
+Replace our original `cabal.exe` by the one built in `C:\Users\USERNAME\AppData\Roaming\cabal\bin\`.
+Also add the above path into `PATH`.
+
+Now we have the latest `GHC` and `Cabal-Install` :)

@@ -1,0 +1,99 @@
+---
+title: Yoneda Lemma Explained in Haskell
+tags: haskell
+---
+
+> When you need something to go faster, hit it with the Yoneda lemma.
+> Still isn't fast enough? Use it again.
+> —— [Edward Kmett](https://twitter.com/kmett/status/546533863636627456)
+
+[Yoneda lemma](https://en.wikipedia.org/wiki/Yoneda_lemma)
+may be the first understanding challenge in category theory.
+For an arbitrary functor $F$ from a category $C$ to the category $Set$,
+Yoneda lemma says:
+for any object $A$ of $C$, the natural transformations from
+the [hom-functor](http://ncatlab.org/nlab/show/hom-functor) $h_A$ to $F$
+are in one-to-one correspondence with the elements in $F(A)$.
+That's is,
+
+$$ \mathrm{Nat}(h_A,F) \cong F(A). $$
+
+Doesn't it hurt your brain? The proof is even more tedious.
+In another way, however, it just states that every object
+can be determined by how other objects map into it.
+The interesting thing is, once translated into Haskell,
+the Yoneda lemma becomes more readable and understandable.
+
+In Haskell the category $C$ and $Set$ are both $Hask$,
+the category of all types in Haskell.
+And a natural transformation is just a polynomial function which,
+in this case, from functor `(->) a` to functor `f`.
+So in Haskell we can write Yoneda lemma as
+
+    (forall b. (a -> b) -> f b) ~ f a
+
+which means an isomorphism between a polynomial function and a type.
+This can be interpreted in the following way: for a fixed type `a` and a functor `f`,
+if there is a polynomial function `g` that knows how to convert any `a -> b` into `f b`,
+then this `g` is just something holding a `f a`
+(and remembering to `fmap` any `a -> b` on it), and vice versa.
+
+To prove this isomorphism, we need to show that for the following two conversion functions:
+
+```haskell
+fw :: (Functor f) => (forall b . (a -> b) -> f b) -> f a
+fw f = f id
+
+bw :: (Functor f) => f a -> (forall b . (a -> b) -> f b)
+bw x f = fmap f x
+```
+
+the following two statements are both true:
+
+```
+fw . bw = id
+bw . fw = id
+```
+
+The first one is easy:
+
+```
+(fw . bw) fa
+= fw (bw fa)
+= (bw fa) id
+= bw fa id
+= fmap id fa
+= fa
+```
+
+and there are two steps notable in the second proof:
+
+```
+bw (fw g) a2b
+= fmap a2b (g id)
+= g (fmap a2b id) (*)
+= g (a2b . id)    (**)
+= g a2b
+```
+
+In `(*)` we swap `g` and `fmap a2b` when apply them to `id` in sequence.
+This is because the `forall` in the polynomial function `g`
+makes it a natural transformation from functor `(-> a)` to functor `f`
+and ensure that the following diagram commute:
+
+```
+                  g
+      (a -> b) --------> f b
+         ^                ^
+         |                |
+fmap a2b |                | fmap a2b
+         |                |
+         |                |
+      (a -> a) --------> f a
+                  g
+```
+
+Commutation means the both ways from bottom left to top right are the same.
+So we can swap `g` and `fmap a2b`. Also notice that the bottom left is just `id`.
+The `(**)` step is an application of the `fmap` definition of functor `(-> a)`,
+which is just function composition `(.)`. QED.

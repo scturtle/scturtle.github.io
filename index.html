@@ -1,0 +1,18 @@
+---
+title: Home
+---
+
+$for(posts)$
+<div class=overview>
+  <div class=date> $date$ </div>
+  <div class=detail>
+    <a href="$url$">$title$</a>
+  </div>
+</div>
+$endfor$
+
+<div class=overview>
+  <div class="detail archive">
+    » <a href="/archive.html">archive</a>
+  </div>
+</div>

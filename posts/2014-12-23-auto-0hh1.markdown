@@ -1,0 +1,13 @@
+---
+title: Play 0hh1.com with PyAutoGUI
+tags: python
+---
+
+<img src="https://dl.dropboxusercontent.com/u/1551217/0hh1.gif" style="max-width:480px;"/>
+
+Inspired by [this blog](http://inventwithpython.com/blog/2014/12/17/programming-a-bot-to-play-the-sushi-go-round-flash-game/).
+
+Much simpler example showing how to play [0hh1.com](http://0hh1.com)(simple game like 2048) with [PyAutoGUI](https://pyautogui.readthedocs.org/en/latest/).
+
+Code is [here](https://gist.github.com/scturtle/9403534f32ff7a95dd3f).
+
