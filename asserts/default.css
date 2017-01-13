@@ -10,13 +10,11 @@ body {
 }
 
 div#header {
+    display: flex;
+    justify-content: space-between;
     border-bottom: dotted 1px #bbb;
     margin-bottom: 0px;
     padding: 50px 10px 20px 10px;
-}
-
-div#header #navigation {
-    text-align: right;
 }
 
 a       { color: #37638E; text-decoration: none; }

@@ -5,8 +5,8 @@ cabal-version:      >= 1.10
 
 executable turtlepool
   main-is:          turtlepool.hs
-  build-depends:    base == 4.*
-                  , hakyll == 4.7.*
+  build-depends:    base
+                  , hakyll
                   , containers
                   , pandoc
                   , process
