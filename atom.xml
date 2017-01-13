@@ -142,9 +142,9 @@ foldl f i bs =
 <p><a href="https://en.wikipedia.org/wiki/Yoneda_lemma">Yoneda lemma</a> may be the first understanding challenge in category theory. For an arbitrary functor <span class="math inline">\(F\)</span> from a category <span class="math inline">\(C\)</span> to the category <span class="math inline">\(Set\)</span>, Yoneda lemma says: for any object <span class="math inline">\(A\)</span> of <span class="math inline">\(C\)</span>, the natural transformations from the <a href="http://ncatlab.org/nlab/show/hom-functor">hom-functor</a> <span class="math inline">\(h_A\)</span> to <span class="math inline">\(F\)</span> are in one-to-one correspondence with the elements in <span class="math inline">\(F(A)\)</span>. That’s is,</p>
 <p><span class="math display">\[ \mathrm{Nat}(h_A,F) \cong F(A). \]</span></p>
 <p>Doesn’t it hurt your brain? The proof is even more tedious. In another way, however, it just states that every object can be determined by how other objects map into it. The interesting thing is, once translated into Haskell, the Yoneda lemma becomes more readable and understandable.</p>
-<p>In Haskell the category <span class="math inline">\(C\)</span> and <span class="math inline">\(Set\)</span> are both <span class="math inline">\(Hask\)</span>, the category of all types in Haskell. And a natural transformation is just a polynomial function which, in this case, from functor <code>(-&gt;) a</code> to functor <code>f</code>. So in Haskell we can write Yoneda lemma as</p>
+<p>In Haskell the category <span class="math inline">\(C\)</span> and <span class="math inline">\(Set\)</span> are both <span class="math inline">\(Hask\)</span>, the category of all types in Haskell. And a natural transformation is just a polymorphic function which, in this case, from functor <code>(-&gt;) a</code> to functor <code>f</code>. So in Haskell we can write Yoneda lemma as</p>
 <div class ="highlight"><pre><code class="nohighlight">(forall b. (a -> b) -> f b) ~ f a</code></pre></div>
-<p>which means an isomorphism between a polynomial function and a type. This can be interpreted in the following way: for a fixed type <code>a</code> and a functor <code>f</code>, if there is a polynomial function <code>g</code> that knows how to convert any <code>a -&gt; b</code> into <code>f b</code>, then this <code>g</code> is just something holding a <code>f a</code> (and remembering to <code>fmap</code> any <code>a -&gt; b</code> on it), and vice versa.</p>
+<p>which means an isomorphism between a polymorphic function and a type. This can be interpreted in the following way: for a fixed type <code>a</code> and a functor <code>f</code>, if there is a polymorphic function <code>g</code> that knows how to convert any <code>a -&gt; b</code> into <code>f b</code>, then this <code>g</code> is just something holding a <code>f a</code> (and remembering to <code>fmap</code> any <code>a -&gt; b</code> on it), and vice versa.</p>
 <p>To prove this isomorphism, we need to show that for the following two conversion functions:</p>
 <div class ="highlight"><pre><code class="haskell">fw :: (Functor f) => (forall b . (a -> b) -> f b) -> f a
 fw f = f id
@@ -167,7 +167,7 @@ bw . fw = id</code></pre></div>
 = g (fmap a2b id) (*)
 = g (a2b . id)    (**)
 = g a2b</code></pre></div>
-<p>In <code>(*)</code> we swap <code>g</code> and <code>fmap a2b</code> when apply them to <code>id</code> in sequence. This is because the <code>forall</code> in the polynomial function <code>g</code> makes it a natural transformation from functor <code>(-&gt; a)</code> to functor <code>f</code> and ensure that the following diagram commute:</p>
+<p>In <code>(*)</code> we swap <code>g</code> and <code>fmap a2b</code> when apply them to <code>id</code> in sequence. This is because the <code>forall</code> in the polymorphic function <code>g</code> makes it a natural transformation from functor <code>(-&gt; a)</code> to functor <code>f</code> and ensure that the following diagram commute:</p>
 <div class ="highlight"><pre><code class="nohighlight">                  g
       (a -> b) --------> f b
          ^                ^
