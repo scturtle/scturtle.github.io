@@ -11,7 +11,7 @@ $$C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})$$
 
 which $N+1$ is the comparisons needed for partitioning, 
 and then plus $N$ ways of partitioning with equal probability.
-Also we have $C_0 = 0$. 
+Also we have $C_1 = 0$.
 
 Noticing the symmetric parttern in the sum part, we get:
 $$C_N = (N+1) + \frac 2N \sum_{1\leq k \leq N} C_{k-1}$$
@@ -32,13 +32,13 @@ Expand the right part to the end of the world:
 $$\begin{split}
 \frac{C_N}{N+1} &= \frac{C_{N-1}}{N} + \frac 2{N+1} \\
 &= \frac{C_{N-2}}{N-1} + \frac 2N + \frac 2{N+1} \\
-&= C_0 + \frac 22 + \frac 23 + \dots + \frac 2N + \frac 2{N+1}
+&= \frac {C_1} 2 + \frac 23 + \dots + \frac 2N + \frac 2{N+1}
 \end{split}$$
 
 Ignore small items:
 $$c_N \sim 2N \sum_{1 \leq k \leq N} \frac 1k - 2N$$
 
-Finally, use the magic [`Euler constant`](http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant) $\gamma$:
+Finally, use the magic [`Euler constant`](http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant) $\gamma$ = 0.57721...:
 $$\begin{split}
 c_N &\sim 2N (\int_1^\infty \frac 1x \mathrm{d} x + \gamma) - 2N \\
 &=2N \ln N - 2(1-\gamma)N
