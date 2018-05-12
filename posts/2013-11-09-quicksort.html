@@ -34,7 +34,7 @@
 
 <p>From an interesting <a href="http://aofa.cs.princeton.edu/lectures/lectures13/AA01-AofA.pdf">slide</a>.</p>
 <p>We denote <span class="math inline">\(C_N\)</span> as the <em>expected</em> number of comparisons used by sorting an array of length <span class="math inline">\(N\)</span>. The recursive formula is like this: <span class="math display">\[C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})\]</span></p>
-<p>which <span class="math inline">\(N+1\)</span> is the comparisons needed for partitioning, and then plus <span class="math inline">\(N\)</span> ways of partitioning with equal probability. Also we have <span class="math inline">\(C_0 = 0\)</span>.</p>
+<p>which <span class="math inline">\(N+1\)</span> is the comparisons needed for partitioning, and then plus <span class="math inline">\(N\)</span> ways of partitioning with equal probability. Also we have <span class="math inline">\(C_1 = 0\)</span>.</p>
 <p>Noticing the symmetric parttern in the sum part, we get: <span class="math display">\[C_N = (N+1) + \frac 2N \sum_{1\leq k \leq N} C_{k-1}\]</span> then <span class="math display">\[NC_N = N(N+1) + 2 \sum_{1\leq k \leq N} C_{k-1}\]</span></p>
 <p>Time to high school math. First, we write down same formula for N-1: <span class="math display">\[(N-1)C_{N-1} = (N-1)N + 2 \sum_{1\leq k \leq N-1} C_{k-1}\]</span></p>
 <p>Then we subtract the above two equations to get: <span class="math display">\[NC_N - (N-1)C_{N-1} = 2N + 2C_{N-1}\]</span> <span class="math display">\[NC_N = (N+1)C_{N-1} + 2N\]</span></p>
@@ -42,10 +42,10 @@
 <p>Expand the right part to the end of the world: <span class="math display">\[\begin{split}
 \frac{C_N}{N+1} &amp;= \frac{C_{N-1}}{N} + \frac 2{N+1} \\
 &amp;= \frac{C_{N-2}}{N-1} + \frac 2N + \frac 2{N+1} \\
-&amp;= C_0 + \frac 22 + \frac 23 + \dots + \frac 2N + \frac 2{N+1}
+&amp;= \frac {C_1} 2 + \frac 23 + \dots + \frac 2N + \frac 2{N+1}
 \end{split}\]</span></p>
 <p>Ignore small items: <span class="math display">\[c_N \sim 2N \sum_{1 \leq k \leq N} \frac 1k - 2N\]</span></p>
-<p>Finally, use the magic <a href="http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant"><code>Euler constant</code></a> <span class="math inline">\(\gamma\)</span>: <span class="math display">\[\begin{split}
+<p>Finally, use the magic <a href="http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant"><code>Euler constant</code></a> <span class="math inline">\(\gamma\)</span> = 0.57721...: <span class="math display">\[\begin{split}
 c_N &amp;\sim 2N (\int_1^\infty \frac 1x \mathrm{d} x + \gamma) - 2N \\
 &amp;=2N \ln N - 2(1-\gamma)N
 \end{split}\]</span></p>
