@@ -1,0 +1,122 @@
+---
+layout: page
+title: Exploring Writing foldl Using foldr
+---
+
+It is widely known that left folding can be implemented by right folding.
+But the implementation is not so obvious. Let's try writing one from scratch.
+First, we need these two extensions of GHC to make life better.
+
+```haskell
+{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}
+```
+
+Let's just ignore the original implementations in `Prelude`
+and try writing them by hand:
+
+```haskell
+import Prelude hiding (foldr, foldl)
+
+foldr :: (b -> a -> a) -> a -> [b] -> a
+foldr _ r [] = r
+foldr f r (x:xs) = f x (foldr f r xs)
+
+foldl :: (a -> b -> a) -> a -> [b] -> a
+foldl f r [] = r
+foldl f a (x:xs) = foldl f (f a x) xs
+```
+
+If we want to write `foldl` using `foldr`,
+that defination should looks like this:
+
+```haskell
+foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs = foldr undefined undefined undefined
+```
+
+The only thing we can be sure is that we will still be working on list `bs`.
+So let's refine the above one with this observation:
+
+```haskell
+foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: _ -> _ -> [b] -> _
+      fold = foldr
+  in  fold undefined undefined bs
+```
+
+Let's think about a small example. According to our original implantation,
+`foldl f i [b1, b2]` should be expanded into `f (f i b1) b2`
+but the form in `foldr g j [b1, b2]` is `g b1 (b g2 j)`.
+The most important step is the definition of `g` and `j`. 
+The function `g` should have type looks like `b -> r -> r` and
+if the first parameter is `b1`, the second parameter (`r`) should
+be able to use `f i b1` in itself to re-build the original `foldl` expansion.
+That sounds like a continuation `a -> r` instead of just `r`.
+Let's try this idea:
+
+```haskell
+foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: (b -> (a -> r) -> (a -> r)) -> (a -> r) -> [b] -> (a -> r)
+      fold = foldr
+      g :: b -> (a -> r) -> (a -> r)
+      g b1 cont = cont (f i b1)
+  in  fold g undefined bs
+```
+
+Bad thing happens.
+We get two type errors because now `g` and `fold` are of type ending with `(a -> r)`.
+Let's look into them one by one.
+For `g`, we are using a `b` to turn a continuation into another continuation.
+So `g` actually need a extra parameter `a`.
+And `fold` return a continuation and need an initial value `a` to get the final result.
+Let's refine the signature and definition:
+
+```haskell
+foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: (b -> (a -> r) -> (a -> r)) -> (a -> r) -> [b] -> (a -> r)
+      fold = foldr
+      g :: b -> (a -> r) -> (a -> r)
+      g b1 cont a = cont (f i b1)
+  in  fold g undefined bs undefined
+```
+
+Now our compiler warns us that `a` is not used.
+According to its type, the only place to use it is where `i` is.
+This makes sense because we are using the future result in our computation.
+But where `i` should go? The only place seems to using it to complete our `fold`.
+(I think this is the only tricky part and hope to find better thoughts on this in the future.)
+Let's refine it again:
+
+```haskell
+foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let fold :: (b -> (a -> r) -> (a -> r)) -> (a -> r) -> [b] -> (a -> r)
+      fold = foldr
+      g :: b -> (a -> r) -> (a -> r)
+      g b1 cont a = cont (f a b1)
+  in  fold g undefined bs i
+```
+
+We are almost done and only one `undefined` is left.
+Notice that the final result is of type `r` but our target type is `a`.
+That just means `r` is `a`.
+So the only left `undefined` is of type `forall a. a -> a`
+and its only implantation is `id` according to parametricity.
+This also fits our experience with continuation by finishing it with `\a -> a`.
+Our final version is:
+
+```haskell
+foldl :: forall a b. (a -> b -> a) -> a -> [b] -> a
+foldl f i bs =
+  let g b1 cont a = cont (f a b1)
+  in  foldr g id bs i
+```
+
+It works!
+```haskell
+λ> foldl (\r x -> r ++ [x]) [0 :: Int] [1 .. 10]
+[0,1,2,3,4,5,6,7,8,9,10]
+```

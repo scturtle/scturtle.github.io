@@ -1,0 +1,188 @@
+---
+layout: page
+title: PFPL 读书笔记和闲言碎语
+---
+
+[Practical Foundations for Programming Languages](http://www.cs.cmu.edu/~rwh/plbook/1sted-revised.pdf) 是一本介绍编程语言理论（PLT, programming language theory）和类型论（type theory）的书。
+和另一本传说中的书 [TAPL](https://www.cis.upenn.edu/~bcpierce/tapl/) 相比，更新内容也更广，不拘于一门编程语言，通篇的数学更简洁虽然也更难懂一些。
+此外，在介绍的各种类型系统（type system）时，书里特意标出哪些规则是 call by name 那些是 call by value 的，很好地避免了单一一门语言对及早（eager）还是惰性求值的偏颇。
+作者的大名也是不能更响，不管是第一版还是修订中的第二版都在网上放出 pdf 实属业界良心。
+
+呃说起来 PLT 范围很广，从 Lisp/Scheme 的各种奇技淫巧，到 Haskell 从范畴论借来的各种花哨术语，再到不知何年何月才足够实用的 dependent type，摆脱不了的基础便是各种类型系统（type system）和背后的类型论了。
+不过就像 PLT 其实没啥用处一样，看了这本书也并不会对写代码有什么帮助。
+但是这本书会把各种语言的各种特性纳入一个统一的框架（类型论）中，告诉你哪些真能提升语言的表达能力，哪些特性是扯淡的，哪些看起来很绚丽的其实是另一些特性的组合。
+了解这些呢有助于避免被某些新出语言的广告词所欺骗，也可以在永无停歇的语言互黑大战获得高屋建瓴一针见血的能力。
+
+因为章节很碎（18部分，49章）,下面试图总结性地写一写，算是给自己的笔记，和近来多无所事事的交代。
+
+Preface 有一句很有意思的话，感觉开了地图炮啊233：
+
+> If language design and programming methodology are to advance from a trade-craft to a rigorous discipline, it is essential that we first get the definitions right.
+
+第一部分叫做 Judgments and Rules。基本上是各种常用的定义、符号和推导形式。呃其实就是证明论（proof theory）里那堆东西拿过来又叨叨了一遍。话说 proof theory、type theory 和 category theory 这三者虽然分别来自逻辑学、计算机和数学，但是现在互相打通（[CCC](https://en.wikipedia.org/wiki/Cartesian_closed_category), [Curry–Howard correspondence](https://en.wikipedia.org/wiki/Curry–Howard_correspondence)）之后来看，不得不说计算机还真是一门科学。作者本人也曾在讲座中 troll 过：
+
+> Math itself is just a corner of computer science. Computer science is the queen of sciences. —— Robert Harper
+
+第二部分叫做 Statics and Dynamics。讲的是语言区分为静态部分和动态部分。
+静态部分指语法和类型规则，语言在执行静态检查时会进行类型推断和检查，这时便可以剔除一些显而易见的类型错误。
+动态规则指运行时如何从表达式一步一步运行得到值。
+一个语言的类型系统既包括静态部分也包括动态部分，一个类型系统是否安全（type safety）也包括两个部分：preservation 和 progress。
+前者要给你们看到，我静态分析这个表达式是这个类型，你动态运行每一步也是这个类型（没有特技）。
+后者则是说，我静态检查通过了，你动态运行不会还没得到值就因为类型不符进行不下去了。
+不过后者并不能排除除以零这种类型正确的运行时错误。
+说起来静态部分做的工作越多，动态时出错的可能性也就更少，这也是为什么需要越来越高级的 type system 的原因。
+不过到了 dependent type 这个地步，静态部分都不一定能停机了，还得程序员自己来证明并嵌入代码中，真的会有实用的一天么？……
+最后这里还引用了一句著名广告词233：
+
+> well-typed programs do not go wrong. —— Robin Milner
+
+第三部分叫做 Total Functions，引入了函数的定义和 system T。
+在第二部分第四章介绍类型系统的时候，曾引入本书的的第一个类型系统 `language E`, 包括简单的数字、字符串、几个运算函数和 let 绑定。
+这里先扩展 `E` 为 `ED` 添加了简单的函数定义和函数应用。
+进而，引入 $\lambda$ function 并加入函数类型作为一等公民，实现了高阶函数（higher-order function），扩展 `E` 为 `EF`。
+实现 $\lambda$ function 的时候，会有作用域的问题，解释时使用替换（substitution）没问题但是没嵌套作用域（nesting scoping）的 mapping environment 会有问题。
+这也是为什么实际中实现 $\lambda$ function 需要闭包（closure）的原因。
+
+System T 又叫做 Gödel's T，只包括包括上面的高阶函数和皮亚诺（Peano）数（`Z, S(Z), S(S(Z))`……）表示的自然数和原始递归（primitive recursion），是异常简单同时也非常重要的一个类型系统。
+原始递归是建立在像剥洋葱一样层层剥离皮亚诺数基础上的递归，如果参数是 Z 也就是 0 的话就返回，如果是 S(e) 就对 e 继续递归。相当于每次递归的时候参数减一，所以是一定会停机的。
+这说明 T 里面只能定义 total function，也就是像纯粹的数学函数一样，对定义域的每个输入都一定会返回值，而不会像 partial function 一样在某些定义域上未定义或者在计算中陷入了死循环。
+（换句话说，system T 里的递归是自带 termination proof 的。）
+
+咋一看这货根本不行啊，连一个最简单的死循环函数都写不出来啊。
+文中用了的 Gödel's encoding 和对角线法（diagonalization）那套用来证明不完备的方法，来证明 T 中确实有无法定义的函数，比如一个自身的解释器，所以说 T 并不是图灵完备的。
+可以说 system T 虽然抛弃了 universality 但是获得了 totality。
+咋一看图灵完备都做不到有个毛用，但是 totality 在形式证明（formal proof）中却是必要的，因为一个不停机的证明什么也说明不了。
+而且在 dependent type system 中，类型可能会依赖于值，所以 totality 对于类型检查能否停机也是至关重要的。
+这也是 Coq、Idris 和 Agda 这类 [total functional programming](http://www.wikiwand.com/en/Total_functional_programming) 的基础。
+
+第四部分叫做 Finite Data Types。介绍了 product type 和 sum type 两种组合已有类型得到新类型的最基本的方法。
+Product type 类比于常见的元祖（tuple）。比如（Int, String）这个类型的值的个数 = Int 的值得个数 $\times$ String 的值的个数。
+那么乘法的单位元 $\mathfrak{1}$ 是什么呢？是空元祖类型也叫做 Unit，它的特点就是只有一个值 `()`。
+Product type 有一个有趣的应用是可以用来实现像 odd 和 even 这种互相交叉定义的递归函数（primitive mutual recursion）。说白了就是递归时用元祖来同时计算所有函数啦。
+
+> Sums codify heterogeneity.
+
+Sum type 则对应着类型“和”。比如 Haskell 里面的 `data Bool = True | False`，如果把 `True` 和 `False` 分别看做只有一个值的类型，那么 `Bool` 的值的个数就是 1+1=2。
+另一个常见的 sum type 是 `data Maybe a = Nothing | Just a`（很多语言里面的 `option`），值的个数是类型 a 的值的个数加一。
+“和”的单位元 $\mathfrak{0}$ 是类型 Void，其特点是……没有值，所以“加”什么还是什么。
+这里的 Void 和 C/C++ 里面的 void 是不同的，后者其实是前面提到的 Unit，而前者没有任何值所以既不能被当做参数也不能被当做返回值（正常情况下……）。
+<!-- “null pointer fallacy” 不再赘述。 -->
+
+第五部分是 Types and Propositions。说的是 constructive logic（构造性逻辑，又叫 [intuitionistic logic](https://en.wikipedia.org/wiki/Intuitionistic_logic)，直觉主义逻辑）和 [classical logic](https://en.wikipedia.org/wiki/Classical_logic)（经典逻辑）之间的恩怨纠葛。
+经典逻辑是我们熟悉的形式逻辑，包括命题为真，为假，和 $\top$ (truth), $\bot$ (falsity), $\vee$ (or), $\wedge$ (and), $\subset$ (imply)。
+经典逻辑中任一命题要么为真要么为假，没有中间状态，叫做排中律（LEM, [law of the excluded middle](https://en.wikipedia.org/wiki/Law_of_excluded_middle)），表示为 $P \vee \neg P\ true$。
+
+> Constructive logic codiﬁes the principles of mathematical reasoning as it is actually practiced.
+
+构造性逻辑则拿掉了排中律，命题为真必须给出证明，为假则必须给出反驳，两者都必须构建在一个又一个的证明或者反驳之上。
+比如，虽然我们知道要么 $P = NP$ 要么 $P \neq NP$，但是我们目前既不能给出前者的证明也给不出后者的证明（来反驳前者），所以不能用这两个证明中的任意一个来构建一个 $\vee$。
+这样的好处是，构造性逻辑能更好地反映现实中的数学推理，现实中总是充满了各种未解决的问题，像 $P \stackrel{?}{=} NP$ 这种目前还只有上帝才知道，还是留给他老人家来用吧。
+
+> There is no guarantee of success! Life is hard, but we muddle through somehow.
+
+另一方面，证明的构造性和计算机程序有着极其相似的结构，一个表达式对于一个特定的类型来说就像一个证明对于命题一样重要。
+这种逻辑和程序奇妙的统一性叫做“propositions as type”。具体表现为：$\top$ 和 Unit，$\bot$ 和 Void，$\wedge$ 和 product，$\vee$ 和 sum，$\subset$ 和 $\lambda$ 分别是一一对应的。
+一个命题对应一个类型，一个证明对应一个程序，又叫做 [Curry-Howard correspondence](https://en.wikipedia.org/wiki/Curry–Howard_correspondence)。
+
+看似从经典逻辑中拿掉了不切实际的排中律，可以建立起逻辑和计算机之间深刻的联系，却必须以牺牲表达能力为代价，实际上并不是！
+可以证明的是构造性逻辑 *不拒绝* 排中律。在需要的时候可以将特定命题的排中律拿来当假设用，所以经典逻辑完全可以在构造性逻辑中表达，只是不能随便开上帝模式了。
+Mind blown! 后面还会继续出现这种 less is more 的栗子。
+
+> In programming language terms adding a “feature” does not necessarily strengthen (improve the expressive power) of your language; on the contrary, it may weaken it.
+
+第六部分为 Infinite Data Types。
+Generic programming 这章简单引入了带类型变量的 类型 $t.\tau$，叫做 polymorphic type operator。
+其中 $\tau$ 是由 $t$ 和 void/unit/product/sum 组合的类型。
+值得注意的是在扩展 $\tau$ 到函数时（$t.\ \tau_1 \rightarrow \tau_2$），需要保证 positivity 也就是 t 不能出现在定义域的位置（$\tau_1$），这种扩展和限制叫做 positive type operators。
+其实这说的也就是 functor 和 fmap，引入这几个抽象概念是为了方便随后定义两种递归类型。
+
+从名字就可以看出 Inductive types 和 coinductive types 是两个互为 dual 的概念。
+前者定义在引进规则（introduction forms）上的，呃，就是定义在“怎么定义”上……
+以其为参数的递归函数的一般形式（catamorphism）是先递归再替换。
+举例来说皮亚诺数，每一个值要么是零要么是另一个值的后继。而参数是皮亚诺数的递归函数先在前驱上递归计算，再计算当前数上的值。
+而 coindoctive types 定义在消除规则（elimination forms）上，嗯……算是“怎么来用”上……
+以其为参数的的递归函数的一般形式（anamorphism）也相反，是先替换再递归。
+通常拿来举的例子是一个无限的数据流（stream），比如斐波那契数列，每一项都是前两项的和，必须先计算完数列前面的值才能得到后面的值的数列。
+如果说 inductive types 的函数更像传统意义上的递归函数（recursor）的话，那么 coinduvtive types 的函数则更像是根据指定规则的一个产生器（generator）。
+
+这是两种最典型的递归形式（recursion scheme），区分它们的必要性在于，他们是同一个（关于 positive type operator 的）类型等式（type equations）的两个极端解（类型）。
+例如 $x = 1 \times x$ 的 inductive/coinductive type 解分别是上面提到过的皮亚诺数和 infinity。
+理论上来说 inductive types 是类型等式的最小解（smallest/least/most restrictive），而 coinductive types 是最大解（largest/greatest/most permissive）。
+另一种对称性在于，前者虽然有无限个值，但是每一个值都是在有限步内构造的；而后者则构造了一个无限的序列，在有限步内析构会得到有限个值。
+从刚才的例子还可以看出，假若不加区分的将一个前者的函数应用在后者上，就引发了死循环，所以强调 totality 的 Idris、Agda 等语言中显式地区分这两种概念。
+从两者函数行为的区别上也可以看出，支持惰性求值才能支持先替换后递归，这也是为什么 Haskell 里面能这么简单实现无限序列的缘故。
+（逼逼了这么多跟懂的似的不过下面这句话我到现在还不是很理解……）
+
+> Inductive types are initial algebras and coinductive types are ﬁnal coalgebras for the functor given by a (polynomial or positive) type operator.
+
+第七部分叫做 Variable Types。
+首先在 T 的基础上，引入了前一部分提到的类型变量和多态，得到 language F，也常常叫做 system F。
+总的来说 system F 就是 *polymorphic* typed lambda-calculus。
+多态（polymorphism）相比 OOP 里面那个含义更像 C++ 的模板系统，把类型无关的相似行为抽象出来，避免冗余代码。
+比如 `id :: forall a. a -> a`，不管输入是啥类型，给啥返回啥就好了。
+多态大大地扩展了语言的表达能力，可以证明，前面提到过的 products/sums/inductive/coinductive types 都可以用多态函数来表示，这种表示法通常叫做 [Church encoding](https://en.wikipedia.org/wiki/Church_encoding)，是丘奇为了证明他的$\lambda$演算的计算能力发明的。
+例如自然数可以表示成 $\forall t.t \rightarrow (t \rightarrow t) \rightarrow t$，叫做[丘奇数](https://zh.wikipedia.org/zh-hans/%E9%82%B1%E5%A5%87%E6%95%B0)。
+不过多态的表达能力太过强大，已被证明，没有类型注释的 system F 的类型检查是 undecidable 的问题。
+但是如果稍稍限制 `forall` 出现的位置，得到一个弱一点的 ["Hindley–Milner"](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system) 类型系统，甚至有高效的类型推断算法，是为 PLT 的经典算法之一。
+
+注意到在 T 中自然数必须用皮亚诺表示法“硬编码”，这说明，F 至少和 T 的表达能力是一样的。
+可以证明的是，虽然 T 的 evaluation function 不能在自身中实现，但是可以在 F 中实现，这说明 F 的表达能力是比 T 高的。
+还可以证明 F 是强规范化的（strongly normalizing），也就是像 T 一样 terminating 的，所以 F 的 evaluation function 也不能用自身写出。
+我们可以扩充 F 得到一个可以实现 F 的更强的语言，还可以进一步扩充这个语言得到更强一点的语言，但是只要是这些更强的语言都还是 terminating 的就还是不能实现自举（呃好像被最新的这篇 [paper](http://compilers.cs.ucla.edu/popl16/) 打了脸，也就是说自举并不需要完备？）。
+可以看出，虽然图灵完备的语言是相通的，图灵不完备的却有着表达能力阶层。
+
+多态类型看似有着级大的自由度，实际上却很大程度上限制了其实现，这种特性叫做 parametricity，个人认为算是 PLT 里面最有意思的东西之一。
+比如 `int -> int` 这个函数可以有无数种实现，加一减一阶乘等等等等，但是一旦把类型抽象出来得到 `forall a. a -> a`，要求其对所有类型 `a` 都适用，便只有 identity function `id` 这一种实现了。
+这个函数签名可以读作“无论给一个什么东西（`a`），都得返回一个和这个东西 *所有性质*（of `a`）完全相同的东西”，所以只有直接返回一条路。
+再一个例子是 `forall a. a -> a -> a`，给两个相同类型的参数返回相同类型的结果，可以证明的是只有返回第一个或者第二个两种实现。
+看似极大自由 `forall` 却限制得连用 `if` 做个选择都不行。
+更复杂的多态类型其性质的推导也更加复杂，本书倒数第二章详述了其后的理论，这里的[两篇实用的文章](http://www.well-typed.com/blog/2015/05/parametricity/)比较容易入门。可以说，parametricity 才是类型系统确保程序正确性的根基：
+
+> Parametricity narrows the space of well-typed programs sufﬁciently that the opportunities for programmer error are reduced to almost nothing.
+
+前面列举的类型中大量使用了 `forall`，如果将 polymorphic types 看成 universal types 的话，那么接下来的一章介绍的 existential types 算是其 dual 的概念了。
+用文中常用的句型来说：Existential types *codify* data abstraction.
+比如队列这个抽象类型可以有各种具体实现类型，每一种实现都可以看做队列的一种具体化的存在，可以拿来直接用。
+实际上就是把实现和接口一块“打了个包”，要求的是接口的类型，用的时候实际上拿具体实现的类型和表达式做替换。
+<!-- 值得注意的是 data abstraction 的打包和替换都是在编译阶段完成的，没有运行时消耗。 -->
+看似 existential types 是 universal types 的 dual，其实 existential types 是完全可以用 universal types 来定义的！
+这一章扩展了 F 得到 FE，并没有实际增加表达能力。
+
+Type 也可以有 type，叫做 kind，前面提过的各种类型的 kind 可以看做 `*`，那么 type constructor 就是类型之上的函数，通过类型来构造新的类型，它的 kind 就是 `* -> *`。
+例如 `Maybe` 和 `[]`(list) 的 kind 是 `* -> *` ，因为他们都需要指定一个元素类型，而 `Either` 的 kind 是 `* -> * -> *`。
+接下来的一章扩展 F 加入 universal/existential quantifier 和 kind 得到 $F_\omega$。
+因为 type constructor 涉及类型层面上的 $\lambda$-abstract 和 application，所以需要定义 definitional equality 来简化类型（类似 $\beta$-reduction）。
+在 $F_\omega$ 的基础上，加上类型层面的存在量词就是 $FE_\omega$，不过不知道这东西有啥用……
+$F_\omega$ 的表达能力很强大，是各种现代编译器的基础，人称 “the workhorse of modern compilers”，Haskell 的 type class、Ocaml 的 module system 甚至 GADT 都可以用它表示出来。
+但是实际中也得加很多限制才能得到高效实用的算法。
+
+第八部分是 Partiality and Recursive Types。
+第十九章介绍了 [system PCF](https://en.wikipedia.org/wiki/Programming_Computable_Functions)，最简单的图灵完备的类型系统，人称 “the E. coli of programming languages”。
+System PCF 的表达能力来自 general recursion 和 partiality。
+比如阶乘函数可以看做 fact(0)= 1 和 fact(n+1) = (n+1) \* fact(n) 这两个等式的解 fact :: Nat -> Nat，这个解可以通过不动点来求得。
+假设我们已经有 fact 这个解了，那么我们可以写这么一个辅助函数：
+f(fact) = $\lambda$ n -> if n == 0 then 1 else n \* fact(n-1)。
+显然等式 fact = f(fact) 成立，假设我们有一个求函数不动点的函数 fix，那么 fact = fix(f)。
+为何不动点就是我们要的解呢？
+因为 PCF 里面的函数是 partial 的，允许函数在有的输入上未定义（发散/不终止），所以我们可以先试着传给 f 一个非常垃圾的解，比如一个在所有输入上都不终止的函数 $\phi$。
+神奇的事情发生了！$\phi'$ = f($\phi$) 在 0 这个 base case 上不依赖于 $\phi$ 返回了结果 1，虽然在其他输入上还是发散了。
+按照不动点的含义，我们再把 $\phi'$ 喂给 f 得到 $\phi''$ = f($\phi'$) = f(f($\phi$))。
+神奇的事情再次发生了！因为 $\phi'$ 在 0 上有了定义，现在 $\phi''$ 在 1 上也有了定义。
+因为 base case 的存在，我们就像求不动点一样不断把更好地解传给 f，就可以不断逼近一个我们想要的 total function。
+实际中 fix 函数的实现也是异曲同工。
+
+可以证明的是 PCF 可实现所有 [partial recursive functions](https://en.wikipedia.org/wiki/%CE%9C-recursive_function)（主要是可以实现 minimization/$\mu$ operation），而且 PCF 自身的 evaluator 也可以用 partial recursive functions 来表示，可见 PCF 是自举的。
+由[等价性](https://en.wikipedia.org/wiki/Computable_function#Definition)可知 PCF 是和图灵机/lambda calculus 等价的。
+前面提过 T 中程序的终止的证明是“编码”进代码和类型检查中的，可想而知而有了 partial functions 抛弃了 totality 之后，写能通过类型检查的程序也更简单了。
+甚至有一个定理 [Blum Size Theorem](https://en.wikipedia.org/wiki/Blum%27s_speedup_theorem) 指出，总存在一个函数在任何 total 的语言中的最短实现是 PCF 中的最短实现的 *任意多倍*。
+
+
+下一章介绍了递归类型（recursive types），扩展 PCF 得到 FPC（这两名字为什么这么像？）。
+我们熟悉的 list 啊 tree 啊这些都是典型的递归类型。
+递归类型和前述的 inductive/coinductive types 定义几乎相同，只是拿掉了 positivity 限制。
+前面提过 inductive/coinductive types 可以看做是 positive 的类型等式的解，那么递归类型则是拿掉了 positivity 限制的类型等式的解。
+但是去掉了限制后解不一定存在，所以递归类型算是一种不动点近似解，也是唯一解，前述的 inductive/coinductive 之分体现在对递归类型的及早/惰性求值上。
+这里十分不解的是作者说用很大的篇幅说及早求值比惰性求值表达能力要高，因为前者能表示用函数来表示后者，而后者不能表示前者？谨慎持异议……
+此外，前述的通用递归（general recursion）可以用递归类型表示出来，因为两者都是靠的自指（self-reference），所以扩充语言表达能力的不是语言特性，最终还是类型。
+
+(待续……)
