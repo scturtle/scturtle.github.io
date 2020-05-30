@@ -1,0 +1,640 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.1.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2020-05-30T10:02:11+08:00</updated><id>/feed.xml</id><title type="html">turtleblog</title><subtitle>No turtles were harmed during coding.</subtitle><entry><title type="html">Exploring Writing foldl Using foldr</title><link href="/posts/2016-01-27-foldl.html" rel="alternate" type="text/html" title="Exploring Writing foldl Using foldr" /><published>2016-01-27T00:00:00+08:00</published><updated>2016-01-27T00:00:00+08:00</updated><id>/posts/foldl</id><content type="html" xml:base="/posts/2016-01-27-foldl.html">&lt;p&gt;It is widely known that left folding can be implemented by right folding.
+But the implementation is not so obvious. Let’s try writing one from scratch.
+First, we need these two extensions of GHC to make life better.&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Let’s just ignore the original implementations in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Prelude&lt;/code&gt;
+and try writing them by hand:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Prelude&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;hiding&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;foldr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;foldl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;xs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;xs&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;If we want to write &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldl&lt;/code&gt; using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldr&lt;/code&gt;,
+that defination should looks like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The only thing we can be sure is that we will still be working on list &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bs&lt;/code&gt;.
+So let’s refine the above one with this observation:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;_&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Let’s think about a small example. According to our original implantation,
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldl f i [b1, b2]&lt;/code&gt; should be expanded into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;f (f i b1) b2&lt;/code&gt;
+but the form in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldr g j [b1, b2]&lt;/code&gt; is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g b1 (b g2 j)&lt;/code&gt;.
+The most important step is the definition of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;j&lt;/code&gt;. 
+The function &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; should have type looks like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b -&amp;gt; r -&amp;gt; r&lt;/code&gt; and
+if the first parameter is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b1&lt;/code&gt;, the second parameter (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;r&lt;/code&gt;) should
+be able to use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;f i b1&lt;/code&gt; in itself to re-build the original &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foldl&lt;/code&gt; expansion.
+That sounds like a continuation &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a -&amp;gt; r&lt;/code&gt; instead of just &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;r&lt;/code&gt;.
+Let’s try this idea:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Bad thing happens.
+We get two type errors because now &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fold&lt;/code&gt; are of type ending with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(a -&amp;gt; r)&lt;/code&gt;.
+Let’s look into them one by one.
+For &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt;, we are using a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;b&lt;/code&gt; to turn a continuation into another continuation.
+So &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; actually need a extra parameter &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt;.
+And &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fold&lt;/code&gt; return a continuation and need an initial value &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; to get the final result.
+Let’s refine the signature and definition:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now our compiler warns us that &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; is not used.
+According to its type, the only place to use it is where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;i&lt;/code&gt; is.
+This makes sense because we are using the future result in our computation.
+But where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;i&lt;/code&gt; should go? The only place seems to using it to complete our &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fold&lt;/code&gt;.
+(I think this is the only tricky part and hope to find better thoughts on this in the future.)
+Let’s refine it again:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;fold&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;undefined&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We are almost done and only one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;undefined&lt;/code&gt; is left.
+Notice that the final result is of type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;r&lt;/code&gt; but our target type is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt;.
+That just means &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;r&lt;/code&gt; is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt;.
+So the only left &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;undefined&lt;/code&gt; is of type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;forall a. a -&amp;gt; a&lt;/code&gt;
+and its only implantation is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;id&lt;/code&gt; according to parametricity.
+This also fits our experience with continuation by finishing it with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;\a -&amp;gt; a&lt;/code&gt;.
+Our final version is:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cont&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;foldr&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bs&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It works!&lt;/p&gt;
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;err&quot;&gt;λ&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foldl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name></name></author><summary type="html">It is widely known that left folding can be implemented by right folding. But the implementation is not so obvious. Let’s try writing one from scratch. First, we need these two extensions of GHC to make life better.</summary></entry><entry><title type="html">PFPL 读书笔记和闲言碎语</title><link href="/posts/2015-12-22-pfpl.html" rel="alternate" type="text/html" title="PFPL 读书笔记和闲言碎语" /><published>2015-12-22T00:00:00+08:00</published><updated>2015-12-22T00:00:00+08:00</updated><id>/posts/pfpl</id><content type="html" xml:base="/posts/2015-12-22-pfpl.html">&lt;p&gt;&lt;a href=&quot;http://www.cs.cmu.edu/~rwh/plbook/1sted-revised.pdf&quot;&gt;Practical Foundations for Programming Languages&lt;/a&gt; 是一本介绍编程语言理论（PLT, programming language theory）和类型论（type theory）的书。
+和另一本传说中的书 &lt;a href=&quot;https://www.cis.upenn.edu/~bcpierce/tapl/&quot;&gt;TAPL&lt;/a&gt; 相比，更新内容也更广，不拘于一门编程语言，通篇的数学更简洁虽然也更难懂一些。
+此外，在介绍的各种类型系统（type system）时，书里特意标出哪些规则是 call by name 那些是 call by value 的，很好地避免了单一一门语言对及早（eager）还是惰性求值的偏颇。
+作者的大名也是不能更响，不管是第一版还是修订中的第二版都在网上放出 pdf 实属业界良心。&lt;/p&gt;
+
+&lt;p&gt;呃说起来 PLT 范围很广，从 Lisp/Scheme 的各种奇技淫巧，到 Haskell 从范畴论借来的各种花哨术语，再到不知何年何月才足够实用的 dependent type，摆脱不了的基础便是各种类型系统（type system）和背后的类型论了。
+不过就像 PLT 其实没啥用处一样，看了这本书也并不会对写代码有什么帮助。
+但是这本书会把各种语言的各种特性纳入一个统一的框架（类型论）中，告诉你哪些真能提升语言的表达能力，哪些特性是扯淡的，哪些看起来很绚丽的其实是另一些特性的组合。
+了解这些呢有助于避免被某些新出语言的广告词所欺骗，也可以在永无停歇的语言互黑大战获得高屋建瓴一针见血的能力。&lt;/p&gt;
+
+&lt;p&gt;因为章节很碎（18部分，49章）,下面试图总结性地写一写，算是给自己的笔记，和近来多无所事事的交代。&lt;/p&gt;
+
+&lt;p&gt;Preface 有一句很有意思的话，感觉开了地图炮啊233：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If language design and programming methodology are to advance from a trade-craft to a rigorous discipline, it is essential that we first get the definitions right.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;第一部分叫做 Judgments and Rules。基本上是各种常用的定义、符号和推导形式。呃其实就是证明论（proof theory）里那堆东西拿过来又叨叨了一遍。话说 proof theory、type theory 和 category theory 这三者虽然分别来自逻辑学、计算机和数学，但是现在互相打通（&lt;a href=&quot;https://en.wikipedia.org/wiki/Cartesian_closed_category&quot;&gt;CCC&lt;/a&gt;, &lt;a href=&quot;https://en.wikipedia.org/wiki/Curry–Howard_correspondence&quot;&gt;Curry–Howard correspondence&lt;/a&gt;）之后来看，不得不说计算机还真是一门科学。作者本人也曾在讲座中 troll 过：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Math itself is just a corner of computer science. Computer science is the queen of sciences. —— Robert Harper&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;第二部分叫做 Statics and Dynamics。讲的是语言区分为静态部分和动态部分。
+静态部分指语法和类型规则，语言在执行静态检查时会进行类型推断和检查，这时便可以剔除一些显而易见的类型错误。
+动态规则指运行时如何从表达式一步一步运行得到值。
+一个语言的类型系统既包括静态部分也包括动态部分，一个类型系统是否安全（type safety）也包括两个部分：preservation 和 progress。
+前者要给你们看到，我静态分析这个表达式是这个类型，你动态运行每一步也是这个类型（没有特技）。
+后者则是说，我静态检查通过了，你动态运行不会还没得到值就因为类型不符进行不下去了。
+不过后者并不能排除除以零这种类型正确的运行时错误。
+说起来静态部分做的工作越多，动态时出错的可能性也就更少，这也是为什么需要越来越高级的 type system 的原因。
+不过到了 dependent type 这个地步，静态部分都不一定能停机了，还得程序员自己来证明并嵌入代码中，真的会有实用的一天么？……
+最后这里还引用了一句著名广告词233：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;well-typed programs do not go wrong. —— Robin Milner&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;第三部分叫做 Total Functions，引入了函数的定义和 system T。
+在第二部分第四章介绍类型系统的时候，曾引入本书的的第一个类型系统 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;language E&lt;/code&gt;, 包括简单的数字、字符串、几个运算函数和 let 绑定。
+这里先扩展 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;E&lt;/code&gt; 为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ED&lt;/code&gt; 添加了简单的函数定义和函数应用。
+进而，引入 $\lambda$ function 并加入函数类型作为一等公民，实现了高阶函数（higher-order function），扩展 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;E&lt;/code&gt; 为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EF&lt;/code&gt;。
+实现 $\lambda$ function 的时候，会有作用域的问题，解释时使用替换（substitution）没问题但是没嵌套作用域（nesting scoping）的 mapping environment 会有问题。
+这也是为什么实际中实现 $\lambda$ function 需要闭包（closure）的原因。&lt;/p&gt;
+
+&lt;p&gt;System T 又叫做 Gödel’s T，只包括包括上面的高阶函数和皮亚诺（Peano）数（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Z, S(Z), S(S(Z))&lt;/code&gt;……）表示的自然数和原始递归（primitive recursion），是异常简单同时也非常重要的一个类型系统。
+原始递归是建立在像剥洋葱一样层层剥离皮亚诺数基础上的递归，如果参数是 Z 也就是 0 的话就返回，如果是 S(e) 就对 e 继续递归。相当于每次递归的时候参数减一，所以是一定会停机的。
+这说明 T 里面只能定义 total function，也就是像纯粹的数学函数一样，对定义域的每个输入都一定会返回值，而不会像 partial function 一样在某些定义域上未定义或者在计算中陷入了死循环。
+（换句话说，system T 里的递归是自带 termination proof 的。）&lt;/p&gt;
+
+&lt;p&gt;咋一看这货根本不行啊，连一个最简单的死循环函数都写不出来啊。
+文中用了的 Gödel’s encoding 和对角线法（diagonalization）那套用来证明不完备的方法，来证明 T 中确实有无法定义的函数，比如一个自身的解释器，所以说 T 并不是图灵完备的。
+可以说 system T 虽然抛弃了 universality 但是获得了 totality。
+咋一看图灵完备都做不到有个毛用，但是 totality 在形式证明（formal proof）中却是必要的，因为一个不停机的证明什么也说明不了。
+而且在 dependent type system 中，类型可能会依赖于值，所以 totality 对于类型检查能否停机也是至关重要的。
+这也是 Coq、Idris 和 Agda 这类 &lt;a href=&quot;http://www.wikiwand.com/en/Total_functional_programming&quot;&gt;total functional programming&lt;/a&gt; 的基础。&lt;/p&gt;
+
+&lt;p&gt;第四部分叫做 Finite Data Types。介绍了 product type 和 sum type 两种组合已有类型得到新类型的最基本的方法。
+Product type 类比于常见的元祖（tuple）。比如（Int, String）这个类型的值的个数 = Int 的值得个数 $\times$ String 的值的个数。
+那么乘法的单位元 $\mathfrak{1}$ 是什么呢？是空元祖类型也叫做 Unit，它的特点就是只有一个值 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;()&lt;/code&gt;。
+Product type 有一个有趣的应用是可以用来实现像 odd 和 even 这种互相交叉定义的递归函数（primitive mutual recursion）。说白了就是递归时用元祖来同时计算所有函数啦。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Sums codify heterogeneity.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Sum type 则对应着类型“和”。比如 Haskell 里面的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;data Bool = True | False&lt;/code&gt;，如果把 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;True&lt;/code&gt; 和 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;False&lt;/code&gt; 分别看做只有一个值的类型，那么 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Bool&lt;/code&gt; 的值的个数就是 1+1=2。
+另一个常见的 sum type 是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;data Maybe a = Nothing | Just a&lt;/code&gt;（很多语言里面的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;option&lt;/code&gt;），值的个数是类型 a 的值的个数加一。
+“和”的单位元 $\mathfrak{0}$ 是类型 Void，其特点是……没有值，所以“加”什么还是什么。
+这里的 Void 和 C/C++ 里面的 void 是不同的，后者其实是前面提到的 Unit，而前者没有任何值所以既不能被当做参数也不能被当做返回值（正常情况下……）。
+&lt;!-- “null pointer fallacy” 不再赘述。 --&gt;&lt;/p&gt;
+
+&lt;p&gt;第五部分是 Types and Propositions。说的是 constructive logic（构造性逻辑，又叫 &lt;a href=&quot;https://en.wikipedia.org/wiki/Intuitionistic_logic&quot;&gt;intuitionistic logic&lt;/a&gt;，直觉主义逻辑）和 &lt;a href=&quot;https://en.wikipedia.org/wiki/Classical_logic&quot;&gt;classical logic&lt;/a&gt;（经典逻辑）之间的恩怨纠葛。
+经典逻辑是我们熟悉的形式逻辑，包括命题为真，为假，和 $\top$ (truth), $\bot$ (falsity), $\vee$ (or), $\wedge$ (and), $\subset$ (imply)。
+经典逻辑中任一命题要么为真要么为假，没有中间状态，叫做排中律（LEM, &lt;a href=&quot;https://en.wikipedia.org/wiki/Law_of_excluded_middle&quot;&gt;law of the excluded middle&lt;/a&gt;），表示为 $P \vee \neg P\ true$。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Constructive logic codiﬁes the principles of mathematical reasoning as it is actually practiced.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;构造性逻辑则拿掉了排中律，命题为真必须给出证明，为假则必须给出反驳，两者都必须构建在一个又一个的证明或者反驳之上。
+比如，虽然我们知道要么 $P = NP$ 要么 $P \neq NP$，但是我们目前既不能给出前者的证明也给不出后者的证明（来反驳前者），所以不能用这两个证明中的任意一个来构建一个 $\vee$。
+这样的好处是，构造性逻辑能更好地反映现实中的数学推理，现实中总是充满了各种未解决的问题，像 $P \stackrel{?}{=} NP$ 这种目前还只有上帝才知道，还是留给他老人家来用吧。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;There is no guarantee of success! Life is hard, but we muddle through somehow.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;另一方面，证明的构造性和计算机程序有着极其相似的结构，一个表达式对于一个特定的类型来说就像一个证明对于命题一样重要。
+这种逻辑和程序奇妙的统一性叫做“propositions as type”。具体表现为：$\top$ 和 Unit，$\bot$ 和 Void，$\wedge$ 和 product，$\vee$ 和 sum，$\subset$ 和 $\lambda$ 分别是一一对应的。
+一个命题对应一个类型，一个证明对应一个程序，又叫做 &lt;a href=&quot;https://en.wikipedia.org/wiki/Curry–Howard_correspondence&quot;&gt;Curry-Howard correspondence&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;看似从经典逻辑中拿掉了不切实际的排中律，可以建立起逻辑和计算机之间深刻的联系，却必须以牺牲表达能力为代价，实际上并不是！
+可以证明的是构造性逻辑 &lt;em&gt;不拒绝&lt;/em&gt; 排中律。在需要的时候可以将特定命题的排中律拿来当假设用，所以经典逻辑完全可以在构造性逻辑中表达，只是不能随便开上帝模式了。
+Mind blown! 后面还会继续出现这种 less is more 的栗子。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;In programming language terms adding a “feature” does not necessarily strengthen (improve the expressive power) of your language; on the contrary, it may weaken it.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;第六部分为 Infinite Data Types。
+Generic programming 这章简单引入了带类型变量的 类型 $t.\tau$，叫做 polymorphic type operator。
+其中 $\tau$ 是由 $t$ 和 void/unit/product/sum 组合的类型。
+值得注意的是在扩展 $\tau$ 到函数时（$t.\ \tau_1 \rightarrow \tau_2$），需要保证 positivity 也就是 t 不能出现在定义域的位置（$\tau_1$），这种扩展和限制叫做 positive type operators。
+其实这说的也就是 functor 和 fmap，引入这几个抽象概念是为了方便随后定义两种递归类型。&lt;/p&gt;
+
+&lt;p&gt;从名字就可以看出 Inductive types 和 coinductive types 是两个互为 dual 的概念。
+前者定义在引进规则（introduction forms）上的，呃，就是定义在“怎么定义”上……
+以其为参数的递归函数的一般形式（catamorphism）是先递归再替换。
+举例来说皮亚诺数，每一个值要么是零要么是另一个值的后继。而参数是皮亚诺数的递归函数先在前驱上递归计算，再计算当前数上的值。
+而 coindoctive types 定义在消除规则（elimination forms）上，嗯……算是“怎么来用”上……
+以其为参数的的递归函数的一般形式（anamorphism）也相反，是先替换再递归。
+通常拿来举的例子是一个无限的数据流（stream），比如斐波那契数列，每一项都是前两项的和，必须先计算完数列前面的值才能得到后面的值的数列。
+如果说 inductive types 的函数更像传统意义上的递归函数（recursor）的话，那么 coinduvtive types 的函数则更像是根据指定规则的一个产生器（generator）。&lt;/p&gt;
+
+&lt;p&gt;这是两种最典型的递归形式（recursion scheme），区分它们的必要性在于，他们是同一个（关于 positive type operator 的）类型等式（type equations）的两个极端解（类型）。
+例如 $x = 1 \times x$ 的 inductive/coinductive type 解分别是上面提到过的皮亚诺数和 infinity。
+理论上来说 inductive types 是类型等式的最小解（smallest/least/most restrictive），而 coinductive types 是最大解（largest/greatest/most permissive）。
+另一种对称性在于，前者虽然有无限个值，但是每一个值都是在有限步内构造的；而后者则构造了一个无限的序列，在有限步内析构会得到有限个值。
+从刚才的例子还可以看出，假若不加区分的将一个前者的函数应用在后者上，就引发了死循环，所以强调 totality 的 Idris、Agda 等语言中显式地区分这两种概念。
+从两者函数行为的区别上也可以看出，支持惰性求值才能支持先替换后递归，这也是为什么 Haskell 里面能这么简单实现无限序列的缘故。
+（逼逼了这么多跟懂的似的不过下面这句话我到现在还不是很理解……）&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Inductive types are initial algebras and coinductive types are ﬁnal coalgebras for the functor given by a (polynomial or positive) type operator.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;第七部分叫做 Variable Types。
+首先在 T 的基础上，引入了前一部分提到的类型变量和多态，得到 language F，也常常叫做 system F。
+总的来说 system F 就是 &lt;em&gt;polymorphic&lt;/em&gt; typed lambda-calculus。
+多态（polymorphism）相比 OOP 里面那个含义更像 C++ 的模板系统，把类型无关的相似行为抽象出来，避免冗余代码。
+比如 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;id :: forall a. a -&amp;gt; a&lt;/code&gt;，不管输入是啥类型，给啥返回啥就好了。
+多态大大地扩展了语言的表达能力，可以证明，前面提到过的 products/sums/inductive/coinductive types 都可以用多态函数来表示，这种表示法通常叫做 &lt;a href=&quot;https://en.wikipedia.org/wiki/Church_encoding&quot;&gt;Church encoding&lt;/a&gt;，是丘奇为了证明他的$\lambda$演算的计算能力发明的。
+例如自然数可以表示成 $\forall t.t \rightarrow (t \rightarrow t) \rightarrow t$，叫做&lt;a href=&quot;https://zh.wikipedia.org/zh-hans/%E9%82%B1%E5%A5%87%E6%95%B0&quot;&gt;丘奇数&lt;/a&gt;。
+不过多态的表达能力太过强大，已被证明，没有类型注释的 system F 的类型检查是 undecidable 的问题。
+但是如果稍稍限制 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;forall&lt;/code&gt; 出现的位置，得到一个弱一点的 &lt;a href=&quot;https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system&quot;&gt;“Hindley–Milner”&lt;/a&gt; 类型系统，甚至有高效的类型推断算法，是为 PLT 的经典算法之一。&lt;/p&gt;
+
+&lt;p&gt;注意到在 T 中自然数必须用皮亚诺表示法“硬编码”，这说明，F 至少和 T 的表达能力是一样的。
+可以证明的是，虽然 T 的 evaluation function 不能在自身中实现，但是可以在 F 中实现，这说明 F 的表达能力是比 T 高的。
+还可以证明 F 是强规范化的（strongly normalizing），也就是像 T 一样 terminating 的，所以 F 的 evaluation function 也不能用自身写出。
+我们可以扩充 F 得到一个可以实现 F 的更强的语言，还可以进一步扩充这个语言得到更强一点的语言，但是只要是这些更强的语言都还是 terminating 的就还是不能实现自举（呃好像被最新的这篇 &lt;a href=&quot;http://compilers.cs.ucla.edu/popl16/&quot;&gt;paper&lt;/a&gt; 打了脸，也就是说自举并不需要完备？）。
+可以看出，虽然图灵完备的语言是相通的，图灵不完备的却有着表达能力阶层。&lt;/p&gt;
+
+&lt;p&gt;多态类型看似有着级大的自由度，实际上却很大程度上限制了其实现，这种特性叫做 parametricity，个人认为算是 PLT 里面最有意思的东西之一。
+比如 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int -&amp;gt; int&lt;/code&gt; 这个函数可以有无数种实现，加一减一阶乘等等等等，但是一旦把类型抽象出来得到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;forall a. a -&amp;gt; a&lt;/code&gt;，要求其对所有类型 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; 都适用，便只有 identity function &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;id&lt;/code&gt; 这一种实现了。
+这个函数签名可以读作“无论给一个什么东西（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt;），都得返回一个和这个东西 &lt;em&gt;所有性质&lt;/em&gt;（of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt;）完全相同的东西”，所以只有直接返回一条路。
+再一个例子是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;forall a. a -&amp;gt; a -&amp;gt; a&lt;/code&gt;，给两个相同类型的参数返回相同类型的结果，可以证明的是只有返回第一个或者第二个两种实现。
+看似极大自由 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;forall&lt;/code&gt; 却限制得连用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;if&lt;/code&gt; 做个选择都不行。
+更复杂的多态类型其性质的推导也更加复杂，本书倒数第二章详述了其后的理论，这里的&lt;a href=&quot;http://www.well-typed.com/blog/2015/05/parametricity/&quot;&gt;两篇实用的文章&lt;/a&gt;比较容易入门。可以说，parametricity 才是类型系统确保程序正确性的根基：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Parametricity narrows the space of well-typed programs sufﬁciently that the opportunities for programmer error are reduced to almost nothing.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;前面列举的类型中大量使用了 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;forall&lt;/code&gt;，如果将 polymorphic types 看成 universal types 的话，那么接下来的一章介绍的 existential types 算是其 dual 的概念了。
+用文中常用的句型来说：Existential types &lt;em&gt;codify&lt;/em&gt; data abstraction.
+比如队列这个抽象类型可以有各种具体实现类型，每一种实现都可以看做队列的一种具体化的存在，可以拿来直接用。
+实际上就是把实现和接口一块“打了个包”，要求的是接口的类型，用的时候实际上拿具体实现的类型和表达式做替换。
+&lt;!-- 值得注意的是 data abstraction 的打包和替换都是在编译阶段完成的，没有运行时消耗。 --&gt;
+看似 existential types 是 universal types 的 dual，其实 existential types 是完全可以用 universal types 来定义的！
+这一章扩展了 F 得到 FE，并没有实际增加表达能力。&lt;/p&gt;
+
+&lt;p&gt;Type 也可以有 type，叫做 kind，前面提过的各种类型的 kind 可以看做 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;*&lt;/code&gt;，那么 type constructor 就是类型之上的函数，通过类型来构造新的类型，它的 kind 就是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;* -&amp;gt; *&lt;/code&gt;。
+例如 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Maybe&lt;/code&gt; 和 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[]&lt;/code&gt;(list) 的 kind 是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;* -&amp;gt; *&lt;/code&gt; ，因为他们都需要指定一个元素类型，而 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Either&lt;/code&gt; 的 kind 是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;* -&amp;gt; * -&amp;gt; *&lt;/code&gt;。
+接下来的一章扩展 F 加入 universal/existential quantifier 和 kind 得到 $F_\omega$。
+因为 type constructor 涉及类型层面上的 $\lambda$-abstract 和 application，所以需要定义 definitional equality 来简化类型（类似 $\beta$-reduction）。
+在 $F_\omega$ 的基础上，加上类型层面的存在量词就是 $FE_\omega$，不过不知道这东西有啥用……
+$F_\omega$ 的表达能力很强大，是各种现代编译器的基础，人称 “the workhorse of modern compilers”，Haskell 的 type class、Ocaml 的 module system 甚至 GADT 都可以用它表示出来。
+但是实际中也得加很多限制才能得到高效实用的算法。&lt;/p&gt;
+
+&lt;p&gt;第八部分是 Partiality and Recursive Types。
+第十九章介绍了 &lt;a href=&quot;https://en.wikipedia.org/wiki/Programming_Computable_Functions&quot;&gt;system PCF&lt;/a&gt;，最简单的图灵完备的类型系统，人称 “the E. coli of programming languages”。
+System PCF 的表达能力来自 general recursion 和 partiality。
+比如阶乘函数可以看做 fact(0)= 1 和 fact(n+1) = (n+1) * fact(n) 这两个等式的解 fact :: Nat -&amp;gt; Nat，这个解可以通过不动点来求得。
+假设我们已经有 fact 这个解了，那么我们可以写这么一个辅助函数：
+f(fact) = $\lambda$ n -&amp;gt; if n == 0 then 1 else n * fact(n-1)。
+显然等式 fact = f(fact) 成立，假设我们有一个求函数不动点的函数 fix，那么 fact = fix(f)。
+为何不动点就是我们要的解呢？
+因为 PCF 里面的函数是 partial 的，允许函数在有的输入上未定义（发散/不终止），所以我们可以先试着传给 f 一个非常垃圾的解，比如一个在所有输入上都不终止的函数 $\phi$。
+神奇的事情发生了！$\phi’$ = f($\phi$) 在 0 这个 base case 上不依赖于 $\phi$ 返回了结果 1，虽然在其他输入上还是发散了。
+按照不动点的含义，我们再把 $\phi’$ 喂给 f 得到 $\phi’’$ = f($\phi’$) = f(f($\phi$))。
+神奇的事情再次发生了！因为 $\phi’$ 在 0 上有了定义，现在 $\phi’’$ 在 1 上也有了定义。
+因为 base case 的存在，我们就像求不动点一样不断把更好地解传给 f，就可以不断逼近一个我们想要的 total function。
+实际中 fix 函数的实现也是异曲同工。&lt;/p&gt;
+
+&lt;p&gt;可以证明的是 PCF 可实现所有 &lt;a href=&quot;https://en.wikipedia.org/wiki/%CE%9C-recursive_function&quot;&gt;partial recursive functions&lt;/a&gt;（主要是可以实现 minimization/$\mu$ operation），而且 PCF 自身的 evaluator 也可以用 partial recursive functions 来表示，可见 PCF 是自举的。
+由&lt;a href=&quot;https://en.wikipedia.org/wiki/Computable_function#Definition&quot;&gt;等价性&lt;/a&gt;可知 PCF 是和图灵机/lambda calculus 等价的。
+前面提过 T 中程序的终止的证明是“编码”进代码和类型检查中的，可想而知而有了 partial functions 抛弃了 totality 之后，写能通过类型检查的程序也更简单了。
+甚至有一个定理 &lt;a href=&quot;https://en.wikipedia.org/wiki/Blum%27s_speedup_theorem&quot;&gt;Blum Size Theorem&lt;/a&gt; 指出，总存在一个函数在任何 total 的语言中的最短实现是 PCF 中的最短实现的 &lt;em&gt;任意多倍&lt;/em&gt;。&lt;/p&gt;
+
+&lt;p&gt;下一章介绍了递归类型（recursive types），扩展 PCF 得到 FPC（这两名字为什么这么像？）。
+我们熟悉的 list 啊 tree 啊这些都是典型的递归类型。
+递归类型和前述的 inductive/coinductive types 定义几乎相同，只是拿掉了 positivity 限制。
+前面提过 inductive/coinductive types 可以看做是 positive 的类型等式的解，那么递归类型则是拿掉了 positivity 限制的类型等式的解。
+但是去掉了限制后解不一定存在，所以递归类型算是一种不动点近似解，也是唯一解，前述的 inductive/coinductive 之分体现在对递归类型的及早/惰性求值上。
+这里十分不解的是作者说用很大的篇幅说及早求值比惰性求值表达能力要高，因为前者能表示用函数来表示后者，而后者不能表示前者？谨慎持异议……
+此外，前述的通用递归（general recursion）可以用递归类型表示出来，因为两者都是靠的自指（self-reference），所以扩充语言表达能力的不是语言特性，最终还是类型。&lt;/p&gt;
+
+&lt;p&gt;(待续……)&lt;/p&gt;</content><author><name></name></author><summary type="html">Practical Foundations for Programming Languages 是一本介绍编程语言理论（PLT, programming language theory）和类型论（type theory）的书。 和另一本传说中的书 TAPL 相比，更新内容也更广，不拘于一门编程语言，通篇的数学更简洁虽然也更难懂一些。 此外，在介绍的各种类型系统（type system）时，书里特意标出哪些规则是 call by name 那些是 call by value 的，很好地避免了单一一门语言对及早（eager）还是惰性求值的偏颇。 作者的大名也是不能更响，不管是第一版还是修订中的第二版都在网上放出 pdf 实属业界良心。</summary></entry><entry><title type="html">Yoneda Lemma Explained in Haskell</title><link href="/posts/2015-06-16-yoneda.html" rel="alternate" type="text/html" title="Yoneda Lemma Explained in Haskell" /><published>2015-06-16T00:00:00+08:00</published><updated>2015-06-16T00:00:00+08:00</updated><id>/posts/yoneda</id><content type="html" xml:base="/posts/2015-06-16-yoneda.html">&lt;blockquote&gt;
+  &lt;p&gt;When you need something to go faster, hit it with the Yoneda lemma.
+Still isn’t fast enough? Use it again.
+—— &lt;a href=&quot;https://twitter.com/kmett/status/546533863636627456&quot;&gt;Edward Kmett&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Yoneda_lemma&quot;&gt;Yoneda lemma&lt;/a&gt;
+may be the first understanding challenge in category theory.
+For an arbitrary functor $F$ from a category $C$ to the category $Set$,
+Yoneda lemma says:
+for any object $A$ of $C$, the natural transformations from
+the &lt;a href=&quot;http://ncatlab.org/nlab/show/hom-functor&quot;&gt;hom-functor&lt;/a&gt; $h_A$ to $F$
+are in one-to-one correspondence with the elements in $F(A)$.
+That’s is,&lt;/p&gt;
+
+\[\mathrm{Nat}(h_A,F) \cong F(A).\]
+
+&lt;p&gt;Doesn’t it hurt your brain? The proof is even more tedious.
+In another way, however, it just states that every object
+can be determined by how other objects map into it.
+The interesting thing is, once translated into Haskell,
+the Yoneda lemma becomes more readable and understandable.&lt;/p&gt;
+
+&lt;p&gt;In Haskell the category $C$ and $Set$ are both $Hask$,
+the category of all types in Haskell.
+And a natural transformation is just a polymorphic function which,
+in this case, from functor &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(-&amp;gt;) a&lt;/code&gt; to functor &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;f&lt;/code&gt;.
+So in Haskell we can write Yoneda lemma as&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(forall b. (a -&amp;gt; b) -&amp;gt; f b) ~ f a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;which means an isomorphism between a polymorphic function and a type.
+This can be interpreted in the following way: for a fixed type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a&lt;/code&gt; and a functor &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;f&lt;/code&gt;,
+if there is a polymorphic function &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; that knows how to convert any &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a -&amp;gt; b&lt;/code&gt; into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;f b&lt;/code&gt;,
+then this &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; is just something holding a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;f a&lt;/code&gt;
+(and remembering to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fmap&lt;/code&gt; any &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;a -&amp;gt; b&lt;/code&gt; on it), and vice versa.&lt;/p&gt;
+
+&lt;p&gt;To prove this isomorphism, we need to show that for the following two conversion functions:&lt;/p&gt;
+
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;fw&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Functor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;fw&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;bw&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Functor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forall&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;bw&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fmap&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;the following two statements are both true:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fw . bw = id
+bw . fw = id
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The first one is easy:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(fw . bw) fa
+= fw (bw fa)
+= (bw fa) id
+= bw fa id
+= fmap id fa
+= fa
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;and there are two steps notable in the second proof:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bw (fw g) a2b
+= fmap a2b (g id)
+= g (fmap a2b id) (*)
+= g (a2b . id)    (**)
+= g a2b
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(*)&lt;/code&gt; we swap &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fmap a2b&lt;/code&gt; when apply them to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;id&lt;/code&gt; in sequence.
+This is because the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;forall&lt;/code&gt; in the polymorphic function &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt;
+makes it a natural transformation from functor &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(-&amp;gt; a)&lt;/code&gt; to functor &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;f&lt;/code&gt;
+and ensure that the following diagram commute:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;                  g
+      (a -&amp;gt; b) --------&amp;gt; f b
+         ^                ^
+         |                |
+fmap a2b |                | fmap a2b
+         |                |
+         |                |
+      (a -&amp;gt; a) --------&amp;gt; f a
+                  g
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Commutation means the both ways from bottom left to top right are the same.
+So we can swap &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;g&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fmap a2b&lt;/code&gt;. Also notice that the bottom left is just &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;id&lt;/code&gt;.
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(**)&lt;/code&gt; step is an application of the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fmap&lt;/code&gt; definition of functor &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(-&amp;gt; a)&lt;/code&gt;,
+which is just function composition &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(.)&lt;/code&gt;. QED.&lt;/p&gt;</content><author><name></name></author><summary type="html">When you need something to go faster, hit it with the Yoneda lemma. Still isn’t fast enough? Use it again. —— Edward Kmett</summary></entry><entry><title type="html">字符串搜索的 Horspool 算法</title><link href="/posts/2015-03-14-horspool.html" rel="alternate" type="text/html" title="字符串搜索的 Horspool 算法" /><published>2015-03-14T00:00:00+08:00</published><updated>2015-03-14T00:00:00+08:00</updated><id>/posts/horspool</id><content type="html" xml:base="/posts/2015-03-14-horspool.html">&lt;blockquote&gt;
+  &lt;p&gt;当你要手写一个字符串搜索算法，你会写什么？&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;本文将要介绍的 Horspool 算法简单又不慢，一看就懂，一学就会，一写就过！&lt;/p&gt;
+
+&lt;p&gt;假设我们要在一个叫 haystack 的字符串中搜索另一个叫 needle 的字符串。先对齐，从后往前搜到某个不匹配的字符：&lt;/p&gt;
+
+&lt;pre&gt;
+ab&lt;font color=&quot;red&quot;&gt;c&lt;/font&gt;&lt;font color=&quot;green&quot;&gt;bab&lt;/font&gt;ababab
+cb&lt;font color=&quot;red&quot;&gt;a&lt;/font&gt;&lt;font color=&quot;green&quot;&gt;bab&lt;/font&gt;
+&lt;/pre&gt;
+
+&lt;p&gt;我们可以把 needle 右移一位然后重新从最后一个开始匹配，这是最朴素的算法。但是我们可不可以多移几位呢？我们看 haystack 中的第三个 b，一个策略是移动 needle 使得这个 b 和 needle 里倒数第二个 b 对齐来，这样 needle 移了两个位置。&lt;/p&gt;
+
+&lt;pre&gt;
+abcba&lt;font color=&quot;green&quot;&gt;b&lt;/font&gt;ababab
+  cba&lt;font color=&quot;green&quot;&gt;b&lt;/font&gt;ab
+&lt;/pre&gt;
+
+&lt;p&gt;needle 里第一个 b 不行，因为会错过解；最后一个 b 也不行，因为 needle 没有动。所以除了 needle 里最后一个位置之外，倒数第一个配对的字符才是正确的选择。&lt;/p&gt;
+
+&lt;p&gt;所以我们知道如何预处理一下 needle，记录 &lt;strong&gt;needle 每个字符的倒数第一次出现的位置(末尾除外)离 needle 末尾的距离&lt;/strong&gt;，来作为跳转步数。不在 needle 里出现的字符对应的跳转步数则为 |needle|。哎呀这个岂不很好写的：&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jmp_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UCHAR_MAX&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UCHAR_MAX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;jmp_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nlen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;jmp_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;needle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;好了现在我们知道，每次出现不匹配时，找到 haystack 里和 needle 对应的最后一个字符，再在 needle 里找它倒数第一次出现的位置(末尾除外)，然后把它们对齐。就是这么简单。&lt;/p&gt;
+
+&lt;p&gt;完整的 C++ 代码：&lt;/p&gt;
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;horspool&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;haystack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;needle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hlen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;strlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;haystack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nlen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;strlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;needle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jmp_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UCHAR_MAX&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UCHAR_MAX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;jmp_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nlen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;jmp_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;needle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hlen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;haystack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;haystack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;needle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jmp_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;简单到 Haskell 的也很好写哇：&lt;/p&gt;
+&lt;div class=&quot;language-haskell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;{-# LANGUAGE OverloadedStrings #-}&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;qualified&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Data.Map&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;M&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;findWithDefault&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fromList&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kr&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;qualified&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;Data.ByteString&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BS&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;horspool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;ByteString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;ByteString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;horspool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;kr&quot;&gt;where&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;lens&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;jmptbl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;M&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fromList&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unpack&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;jmp&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;M&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;findWithDefault&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jmptbl&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lens&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Nothing&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Just&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;otherwise&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kr&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jmp&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;BS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;`&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                         &lt;span class=&quot;kr&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k'&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lenp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k'&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;::&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;IO&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;horspool&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;abcbabababab&quot;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;cbabab&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name></name></author><summary type="html">当你要手写一个字符串搜索算法，你会写什么？</summary></entry><entry><title type="html">Python 字符串格式化详参</title><link href="/posts/2013-12-19-string-format-python.html" rel="alternate" type="text/html" title="Python 字符串格式化详参" /><published>2013-12-19T00:00:00+08:00</published><updated>2013-12-19T00:00:00+08:00</updated><id>/posts/string-format-python</id><content type="html" xml:base="/posts/2013-12-19-string-format-python.html">&lt;p&gt;&lt;a href=&quot;http://docs.python.org/dev/library/string.html#formatspec&quot;&gt;来源docs&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;{}&lt;/code&gt; 包裹的是替换域， &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;{{&lt;/code&gt; 和 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;}}&lt;/code&gt;  可用来 escape。&lt;/p&gt;
+
+&lt;p&gt;语法&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;替换域 ::=  &quot;{&quot; [域名] [&quot;!&quot; 转换] [&quot;:&quot; 格式] &quot;}&quot;
+域名   ::=  参数名 (&quot;.&quot; 属性名 | &quot;[&quot; 索引 &quot;]&quot;)*
+参数名 ::=  [关键字 | 数字]
+属性名 ::=  关键字
+索引   ::=  数字 | 索引字符串
+索引   ::=  &amp;lt;任何字符除了 &quot;]&quot;&amp;gt; +
+转换   ::=  &quot;r&quot; | &quot;s&quot; | &quot;a&quot;
+格式   ::=  &amp;lt;如下介绍&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;参数名要么是关键字（keyword=“…”）要么是数字（标识第几个参数，3.1中默认可忽略）。
+参数名后可加 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.属性名&lt;/code&gt;（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getattr()&lt;/code&gt;）或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[索引]&lt;/code&gt;（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;__getitem__()&lt;/code&gt;）。&lt;/p&gt;
+
+&lt;p&gt;转换域进行格式化之前的强制类型转换（而不是默认的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;__format__()&lt;/code&gt;）。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;!s&lt;/code&gt; 调用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;str()&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;!r&lt;/code&gt; 调用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;repr()&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;!a&lt;/code&gt; 调用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ascii()&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;格式域控制字段宽度，对齐，填充，小数精度等。依据是每种类型自己定义的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;微语言&lt;/code&gt;。格式域可嵌套但只能包含域名。大多数内置类型支持默认的微语言：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;格式 ::=  [[fill]align][sign][#][0][width][,][.precision][type]
+fill     ::=  &amp;lt;填充字符除了 '{' or '}'&amp;gt;
+align ::=  &quot;&amp;lt;&quot; | &quot;&amp;gt;&quot; | &quot;=&quot; | &quot;^&quot;
+sign  ::=  &quot;+&quot; | &quot;-&quot; | &quot; &quot;
+width ::=  integer
+precision ::=  integer
+type ::=  &quot;b&quot; | &quot;c&quot; | &quot;d&quot; | &quot;e&quot; | &quot;E&quot; | &quot;f&quot; | &quot;F&quot; | &quot;g&quot; | &quot;G&quot; | &quot;n&quot; | &quot;o&quot; | &quot;s&quot; | &quot;x&quot; | &quot;X&quot; | &quot;%&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;align：左对齐，右对齐，填充符号和数字间，居中。&lt;/p&gt;
+
+&lt;p&gt;sign：正数前+负数前-，正数前无负数前-，正数前空格负数前-。&lt;/p&gt;
+
+&lt;p&gt;#：整数、浮点数、复数和 Decimal 使用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;替代格式&lt;/code&gt;。比如整数在用十六进制输出时添加&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x&lt;/code&gt;前缀。&lt;/p&gt;
+
+&lt;p&gt;width：前导&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0&lt;/code&gt;则相当于&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fill='0' &amp;amp; align='='&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;,：数字自动添加千分号。&lt;/p&gt;
+
+&lt;p&gt;precision：和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; type = &quot;f&quot; | &quot;F&quot; | &quot;g&quot; | &quot;G&quot; &lt;/code&gt;控制浮点精度，或表示最大域空间。&lt;/p&gt;
+
+&lt;p&gt;type：二进制，字符，十进制，科学计数，科学计数大写，定点，定点(NAN, INF)，
+&lt;em&gt;标准格式（太长）&lt;/em&gt;，标准格式大写，&lt;em&gt;数字&lt;/em&gt;，八进制，十六进制，十六进制大写，百分比。
+不写的话整数十进制，浮点数差不多是标准格式。&lt;/p&gt;</content><author><name></name></author><summary type="html">来源docs</summary></entry><entry><title type="html">Average Running Time of Quicksort</title><link href="/posts/2013-11-09-quicksort.html" rel="alternate" type="text/html" title="Average Running Time of Quicksort" /><published>2013-11-09T00:00:00+08:00</published><updated>2013-11-09T00:00:00+08:00</updated><id>/posts/quicksort</id><content type="html" xml:base="/posts/2013-11-09-quicksort.html">&lt;p&gt;From an interesting &lt;a href=&quot;http://aofa.cs.princeton.edu/lectures/lectures13/AA01-AofA.pdf&quot;&gt;slide&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;We denote $C_N$ as the &lt;em&gt;expected&lt;/em&gt; number of comparisons used by sorting an array of length $N$.
+The recursive formula is like this:&lt;/p&gt;
+
+\[C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})\]
+
+&lt;p&gt;which $N+1$ is the comparisons needed for partitioning, 
+and then plus $N$ ways of partitioning with equal probability.
+Also we have $C_1 = 0$.&lt;/p&gt;
+
+&lt;p&gt;Noticing the symmetric parttern in the sum part, we get:&lt;/p&gt;
+
+\[C_N = (N+1) + \frac 2N \sum_{1\leq k \leq N} C_{k-1}\]
+
+&lt;p&gt;then&lt;/p&gt;
+
+\[NC_N = N(N+1) + 2 \sum_{1\leq k \leq N} C_{k-1}\]
+
+&lt;p&gt;Time to high school math. First, we write down same formula for N-1:&lt;/p&gt;
+
+\[(N-1)C_{N-1} = (N-1)N + 2 \sum_{1\leq k \leq N-1} C_{k-1}\]
+
+&lt;p&gt;Then we subtract the above two equations to get:&lt;/p&gt;
+
+\[NC_N - (N-1)C_{N-1} = 2N + 2C_{N-1}\]
+
+\[NC_N = (N+1)C_{N-1} + 2N\]
+
+&lt;p&gt;Key and tricky step, divide both side by $N(N+1)$:&lt;/p&gt;
+
+\[\frac{C_N}{N+1} = \frac{C_{N-1}}{N} + \frac{2}{N+1}\]
+
+&lt;p&gt;Expand the right part to the end of the world:&lt;/p&gt;
+
+\[\begin{split}
+\frac{C_N}{N+1} &amp;amp;= \frac{C_{N-1}}{N} + \frac 2{N+1} \\
+&amp;amp;= \frac{C_{N-2}}{N-1} + \frac 2N + \frac 2{N+1} \\
+&amp;amp;= \frac {C_1} 2 + \frac 23 + \dots + \frac 2N + \frac 2{N+1}
+\end{split}\]
+
+&lt;p&gt;Ignore small items:&lt;/p&gt;
+
+\[c_N \sim 2N \sum_{1 \leq k \leq N} \frac 1k - 2N\]
+
+&lt;p&gt;Finally, use the magic &lt;a href=&quot;http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Euler constant&lt;/code&gt;&lt;/a&gt; $\gamma$ = 0.57721…:&lt;/p&gt;
+
+\[\begin{split}
+c_N &amp;amp;\sim 2N (\int_1^\infty \frac 1x \mathrm{d} x + \gamma) - 2N \\
+&amp;amp;=2N \ln N - 2(1-\gamma)N
+\end{split}\]
+
+&lt;p&gt;It’s $O(N \log N)$.&lt;/p&gt;</content><author><name></name></author><summary type="html">From an interesting slide.</summary></entry><entry><title type="html">Random Sampling</title><link href="/posts/2013-04-17-random-sampling.html" rel="alternate" type="text/html" title="Random Sampling" /><published>2013-04-17T00:00:00+08:00</published><updated>2013-04-17T00:00:00+08:00</updated><id>/posts/random-sampling</id><content type="html" xml:base="/posts/2013-04-17-random-sampling.html">&lt;p&gt;Given a set of items, choosing random one with equal probability can be done by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;random.choice(items)&lt;/code&gt;.
+But what if we are given items one by one without knowing the length of the whole set?&lt;/p&gt;
+
+&lt;p&gt;There is a simple algorithm: For the $k$-th item, we give up previous selection and choose this one with probability $\frac 1 k$.
+Proof as follows: If we select the $k$-th item, it means that we choose it with probability $\frac 1 k$ and give up all successors. 
+Product of probabilities of all these choices is:&lt;/p&gt;
+
+\[p_k = \frac 1 k \times \frac {k} {k+1} \times \cdots \times \frac {n-2}{n-1} \times \frac {n-1} n = \frac 1 n\]
+
+&lt;p&gt;Codes in Python:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;random&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;choice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;selection&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;item&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;enumerate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;selection&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;item&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;selection&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We can generalize this algorithm. For a set of items, each one is associated with a weight $w_i$.
+Our goal is to select a random one based on its weight ratio.
+The algorithm is similar to the previous one: For the $k$-th item, replace the current selection with it with probability $\frac {w_k} {\sum_{i=1}^k w_i}$.
+Proof is analogical:&lt;/p&gt;
+
+\[p_k = \frac {w_k} {\sum_{i=1}^k w_i} \times \frac {\sum_{i=1}^k w_i} {\sum_{i=1}^{k+1} w_i} 
+\times \cdots \times \frac {\sum_{i=1}^{n-2} w_i} {\sum_{i=1}^{n-1} w_i} \times \frac {\sum_{i=1}^{n-1} w_i} {\sum_{i=1}^{n} w_i} = \frac {w_k} {\sum_{i=1}^n w_i}\]
+
+&lt;p&gt;Codes in Python:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;weightedChoice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;selection&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;total_weight&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.0&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weight&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;total_weight&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weight&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;total_weight&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weight&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;selection&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;item&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;selection&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;There is another amazing method to do this weighted random sampling:
+For each item, get a random $r_i \in [0, 1]$,
+and &lt;em&gt;reweight&lt;/em&gt; this item as $w’_i = r_i^{1 / {w_i}}$.
+Then we can select the one with the top new weight. Proof of this is a bit annoying.&lt;/p&gt;
+
+&lt;p&gt;If we choose the $i$-th item at last, this means $\forall j\neq i, w’_j &amp;lt;w’_i$. As $r_i \in [0, 1]$, the probability is:&lt;/p&gt;
+
+\[p_i = \int_0^1 p(\forall j\neq i, w'_j &amp;lt;w'_i)\ \mathrm{d}\ r_i\]
+
+&lt;p&gt;$r_j$ is independent with each other. So:&lt;/p&gt;
+
+\[p_i = \int_0^1 \prod_{j \neq i} p(w'_j &amp;lt;w'_i)\ \mathrm{d} \ r_i\]
+
+&lt;p&gt;As $r_j \in [0, 1]$, the inner probability can be simplified as:&lt;/p&gt;
+
+\[p(w'_j &amp;lt;w'_i) = p(r_j^{1 / w_j} &amp;lt; r_i^{1 / w_i}) = p(r_j &amp;lt; r_i^{w_j / w_i}) = r_i^{w_j / w_i}\]
+
+&lt;p&gt;So:&lt;/p&gt;
+
+\[p_i = \int_0^1 \prod_{j \neq i} r_i^{w_j / w_i}\ \mathrm{d}\ r_i
+= \int_0^1 r_i^{(w-w_i) / w_i}\ \mathrm{d}\ r_i = \frac {w_i} w\]
+
+&lt;p&gt;Same as our expectation.&lt;/p&gt;
+
+&lt;p&gt;This blog is basically a summary of
+&lt;a href=&quot;http://www.gocalf.com/blog/random-selection.html&quot;&gt;these&lt;/a&gt;
+&lt;a href=&quot;http://www.gocalf.com/blog/weighted-random-selection.html&quot;&gt;three&lt;/a&gt;
+&lt;a href=&quot;http://www.gocalf.com/blog/weighted-random-selection-2.html&quot;&gt;blogs&lt;/a&gt;.
+Refer to them for more content.&lt;/p&gt;</content><author><name></name></author><summary type="html">Given a set of items, choosing random one with equal probability can be done by random.choice(items). But what if we are given items one by one without knowing the length of the whole set?</summary></entry></feed>
