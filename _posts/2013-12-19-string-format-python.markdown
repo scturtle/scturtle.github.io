@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: post
 title: Python 字符串格式化详参
 ---
 

@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: post
 title: 字符串搜索的 Horspool 算法
 ---
 

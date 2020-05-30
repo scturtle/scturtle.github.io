@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: post
 title: Average Running Time of Quicksort
 ---
 

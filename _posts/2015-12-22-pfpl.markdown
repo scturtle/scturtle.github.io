@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: post
 title: PFPL 读书笔记和闲言碎语
 ---
 
