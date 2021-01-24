@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-<img src='/asserts/head.jpg' style='width:100px;'/>
+<img src='/assets/head.jpg' style='width:100px;'/>
 
 I'm SHEN Chao, a coder.
 

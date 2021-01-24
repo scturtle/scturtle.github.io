@@ -1,16 +1,24 @@
 title: turtleblog
-email: scturtle@gmail.com
+author:
+  name: scturtle
+  twitter: scturtle
+  email: scturtle@gmail.com
 description: No turtles were harmed during coding.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: scturtle
-github_username:  scturtle
 permalink: /posts/:name:output_ext
 
 theme: minima
+remote_theme: jekyll/minima
+minima:
+  skin: dark
+  social_links:
+    github: scturtle
+    twitter: scturtle
+    telegram: scturtle
+
 plugins:
   - jekyll-feed
   - jekyll-spaceship
+  - jekyll-remote-theme
 
 jekyll-spaceship:
   processors:
