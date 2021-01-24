@@ -5,27 +5,28 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Yoneda Lemma Explained in Haskell | turtleblog</title>
-<meta name="generator" content="Jekyll v4.1.0">
+<meta name="generator" content="Jekyll v4.2.0">
 <meta property="og:title" content="Yoneda Lemma Explained in Haskell">
+<meta name="author" content="scturtle">
 <meta property="og:locale" content="en_US">
 <meta name="description" content="When you need something to go faster, hit it with the Yoneda lemma. Still isn’t fast enough? Use it again. —— Edward Kmett">
 <meta property="og:description" content="When you need something to go faster, hit it with the Yoneda lemma. Still isn’t fast enough? Use it again. —— Edward Kmett">
-<link rel="canonical" href="/posts/2015-06-16-yoneda.html">
-<meta property="og:url" content="/posts/2015-06-16-yoneda.html">
 <meta property="og:site_name" content="turtleblog">
 <meta property="og:type" content="article">
 <meta property="article:published_time" content="2015-06-16T00:00:00+08:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Yoneda Lemma Explained in Haskell">
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"/posts/2015-06-16-yoneda.html","headline":"Yoneda Lemma Explained in Haskell","dateModified":"2015-06-16T00:00:00+08:00","datePublished":"2015-06-16T00:00:00+08:00","description":"When you need something to go faster, hit it with the Yoneda lemma. Still isn’t fast enough? Use it again. —— Edward Kmett","mainEntityOfPage":{"@type":"WebPage","@id":"/posts/2015-06-16-yoneda.html"},"@context":"https://schema.org"}</script>
+{"headline":"Yoneda Lemma Explained in Haskell","dateModified":"2015-06-16T00:00:00+08:00","datePublished":"2015-06-16T00:00:00+08:00","url":"/posts/2015-06-16-yoneda.html","mainEntityOfPage":{"@type":"WebPage","@id":"/posts/2015-06-16-yoneda.html"},"author":{"@type":"Person","name":"scturtle"},"description":"When you need something to go faster, hit it with the Yoneda lemma. Still isn’t fast enough? Use it again. —— Edward Kmett","@type":"BlogPosting","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
-<link rel="stylesheet" href="/assets/main.css">
+<link rel="stylesheet" href="/assets/css/style.css">
 <link type="application/atom+xml" rel="alternate" href="/feed.xml" title="turtleblog">
 <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({"tex2jax":{"inlineMath":[["$","$"],["\\(","\\)"]]}});</script>
 </head>
 <body>
-<header class="site-header" role="banner">
+<header class="site-header">
 
   <div class="wrapper">
 <a class="site-title" rel="author" href="/">turtleblog</a><nav class="site-nav">
@@ -48,8 +49,8 @@
 
   <header class="post-header">
     <h1 class="post-title p-name" itemprop="name headline">Yoneda Lemma Explained in Haskell</h1>
-    <p class="post-meta">
-      <time class="dt-published" datetime="2015-06-16T00:00:00+08:00" itemprop="datePublished">Jun 16, 2015
+    <p class="post-meta"><time class="dt-published" datetime="2015-06-16T00:00:00+08:00" itemprop="datePublished">
+        Jun 16, 2015
       </time></p>
   </header>
 
@@ -157,27 +158,32 @@ which is just function composition <code class="language-plaintext highlighter-r
 
   <div class="wrapper">
 
-    <h2 class="footer-heading">turtleblog</h2>
-
     <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
         <ul class="contact-list">
-          <li class="p-name">turtleblog</li>
-<li><a class="u-email" href="mailto:scturtle@gmail.com">scturtle@gmail.com</a></li>
-</ul>
+          <li class="p-name">scturtle</li>
+          <li><a class="u-email" href="mailto:scturtle@gmail.com">scturtle@gmail.com</a></li>
+        </ul>
       </div>
-
-      <div class="footer-col footer-col-2">
-<ul class="social-media-list">
-<li><a href="https://github.com/scturtle"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">scturtle</span></a></li>
-<li><a href="https://www.twitter.com/scturtle"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">scturtle</span></a></li>
-</ul>
-</div>
-
-      <div class="footer-col footer-col-3">
+      <div class="footer-col">
         <p>No turtles were harmed during coding.</p>
       </div>
     </div>
+
+    <div class="social-links">
+<ul class="social-media-list">
+<li><a rel="me" href="https://github.com/scturtle" title="scturtle"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg></a></li>
+<li><a rel="me" href="https://twitter.com/scturtle" title="scturtle"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg></a></li>
+<li><a rel="me" href="https://t.me/scturtle" title="scturtle"><svg class="svg-icon grey"><use xlink:href="/assets/minima-social-icons.svg#telegram"></use></svg></a></li>
+</ul>
+</div>
 
   </div>
 
