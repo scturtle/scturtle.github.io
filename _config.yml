@@ -1,24 +1,15 @@
 title: turtleblog
-author:
-  name: scturtle
-  twitter: scturtle
-  email: scturtle@gmail.com
 description: No turtles were harmed during coding.
 permalink: /posts/:name:output_ext
 
-theme: minima
-remote_theme: jekyll/minima
-minima:
-  skin: dark
-  social_links:
-    github: scturtle
-    twitter: scturtle
-    telegram: scturtle
+header_pages:
+  - about.markdown
+
+style: light
 
 plugins:
   - jekyll-feed
   - jekyll-spaceship
-  - jekyll-remote-theme
 
 jekyll-spaceship:
   processors:

@@ -1,0 +1,8 @@
+---
+layout: default
+---
+
+<div style="margin: 0 auto; text-align: center;">
+  <h1 style="font-size: 4em;">404</h1>
+  <p><strong>Page not found :(</strong></p>
+</div>

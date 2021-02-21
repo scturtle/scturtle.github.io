@@ -1,10 +1,10 @@
 ---
 layout: page
-title: About
+title: /about
 permalink: /about/
 ---
 
-<img src='/assets/head.jpg' style='width:100px;'/>
+<img src='/assets/head.jpg' style='width:200px;'/>
 
 I'm SHEN Chao, a coder.
 
