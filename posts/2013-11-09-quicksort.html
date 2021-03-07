@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Average Running Time of Quicksort</title>
   <link rel="stylesheet" type="text/css" href="/assets/main.css">
-<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({"tex2jax":{"inlineMath":[["$","$"],["\\(","\\)"]]}});</script>
+<script>MathJax={"tex":{"inlineMath":[["$","$"],["\\(","\\)"]],"displayMath":[["$$","$$"],["\\[","\\]"]]},"svg":{"fontCache":"global"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <div class="container">
@@ -27,7 +27,7 @@
 <p>We denote $C_N$ as the <em>expected</em> number of comparisons used by sorting an array of length $N$.
 The recursive formula is like this:</p>
 
-\[C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})\]
+<p>$$C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})$$</p>
 
 <p>which $N+1$ is the comparisons needed for partitioning, 
 and then plus $N$ ways of partitioning with equal probability.
@@ -35,25 +35,25 @@ Also we have $C_1 = 0$.</p>
 
 <p>Noticing the symmetric parttern in the sum part, we get:</p>
 
-\[C_N = (N+1) + \frac 2N \sum_{1\leq k \leq N} C_{k-1}\]
+<p>$$C_N = (N+1) + \frac 2N \sum_{1\leq k \leq N} C_{k-1}$$</p>
 
 <p>then</p>
 
-\[NC_N = N(N+1) + 2 \sum_{1\leq k \leq N} C_{k-1}\]
+<p>$$NC_N = N(N+1) + 2 \sum_{1\leq k \leq N} C_{k-1}$$</p>
 
 <p>Time to high school math. First, we write down same formula for N-1:</p>
 
-\[(N-1)C_{N-1} = (N-1)N + 2 \sum_{1\leq k \leq N-1} C_{k-1}\]
+<p>$$(N-1)C_{N-1} = (N-1)N + 2 \sum_{1\leq k \leq N-1} C_{k-1}$$</p>
 
 <p>Then we subtract the above two equations to get:</p>
 
-\[NC_N - (N-1)C_{N-1} = 2N + 2C_{N-1}\]
+<p>$$NC_N - (N-1)C_{N-1} = 2N + 2C_{N-1}$$</p>
 
-\[NC_N = (N+1)C_{N-1} + 2N\]
+<p>$$NC_N = (N+1)C_{N-1} + 2N$$</p>
 
 <p>Key and tricky step, divide both side by $N(N+1)$:</p>
 
-\[\frac{C_N}{N+1} = \frac{C_{N-1}}{N} + \frac{2}{N+1}\]
+<p>$$\frac{C_N}{N+1} = \frac{C_{N-1}}{N} + \frac{2}{N+1}$$</p>
 
 <p>Expand the right part to the end of the world:</p>
 
@@ -65,7 +65,7 @@ Also we have $C_1 = 0$.</p>
 
 <p>Ignore small items:</p>
 
-\[c_N \sim 2N \sum_{1 \leq k \leq N} \frac 1k - 2N\]
+<p>$$c_N \sim 2N \sum_{1 \leq k \leq N} \frac 1k - 2N$$</p>
 
 <p>Finally, use the magic <a href="http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant"><code class="language-plaintext highlighter-rouge">Euler constant</code></a> $\gamma$ = 0.57721…:</p>
 

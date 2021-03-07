@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Random Sampling</title>
   <link rel="stylesheet" type="text/css" href="/assets/main.css">
-<script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({"tex2jax":{"inlineMath":[["$","$"],["\\(","\\)"]]}});</script>
+<script>MathJax={"tex":{"inlineMath":[["$","$"],["\\(","\\)"]],"displayMath":[["$$","$$"],["\\[","\\]"]]},"svg":{"fontCache":"global"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <div class="container">
@@ -29,7 +29,7 @@ But what if we are given items one by one without knowing the length of the whol
 Proof as follows: If we select the $k$-th item, it means that we choose it with probability $\frac 1 k$ and give up all successors. 
 Product of probabilities of all these choices is:</p>
 
-\[p_k = \frac 1 k \times \frac {k} {k+1} \times \cdots \times \frac {n-2}{n-1} \times \frac {n-1} n = \frac 1 n\]
+<p>$$ p_k = \frac 1 k \times \frac {k} {k+1} \times \cdots \times \frac {n-2}{n-1} \times \frac {n-1} n = \frac 1 n $$</p>
 
 <p>Codes in Python:</p>
 
@@ -70,15 +70,15 @@ Then we can select the one with the top new weight. Proof of this is a bit annoy
 
 <p>If we choose the $i$-th item at last, this means $\forall j\neq i, w’_j &lt;w’_i$. As $r_i \in [0, 1]$, the probability is:</p>
 
-\[p_i = \int_0^1 p(\forall j\neq i, w'_j &lt;w'_i)\ \mathrm{d}\ r_i\]
+<p>$$ p_i = \int_0^1 p(\forall j\neq i, w’_j &lt;w’_i)\ \mathrm{d}\ r_i $$</p>
 
 <p>$r_j$ is independent with each other. So:</p>
 
-\[p_i = \int_0^1 \prod_{j \neq i} p(w'_j &lt;w'_i)\ \mathrm{d} \ r_i\]
+<p>$$ p_i = \int_0^1 \prod_{j \neq i} p(w’_j &lt;w’_i)\ \mathrm{d} \ r_i $$</p>
 
 <p>As $r_j \in [0, 1]$, the inner probability can be simplified as:</p>
 
-\[p(w'_j &lt;w'_i) = p(r_j^{1 / w_j} &lt; r_i^{1 / w_i}) = p(r_j &lt; r_i^{w_j / w_i}) = r_i^{w_j / w_i}\]
+<p>$$ p(w’_j &lt;w’_i) = p(r_j^{1 / w_j} &lt; r_i^{1 / w_i}) = p(r_j &lt; r_i^{w_j / w_i}) = r_i^{w_j / w_i} $$</p>
 
 <p>So:</p>
 
