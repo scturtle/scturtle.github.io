@@ -57,6 +57,17 @@ footer svg:hover { filter: invert(1); }
  * Form: TODO
  */
 
+/* quote */
+blockquote {
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--quote-background);
+  border-left: 10px solid #ccc;
+}
+blockquote p {
+  display: inline;
+}
+
 /**
  * Code and syntax highlighting
  */
