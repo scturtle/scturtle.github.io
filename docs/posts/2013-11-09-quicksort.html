@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Average Running Time of Quicksort</title>
+  <link rel="stylesheet" type="text/css" href="/assets/main.css">
+<script>MathJax={"tex":{"inlineMath":[["$","$"],["\\(","\\)"]],"displayMath":[["$$","$$"],["\\[","\\]"]]},"svg":{"fontCache":"global"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="container">
+<header>
+  <div class="menu">
+    <h1><a href="/">turtleblog</a></h1>
+    <ul><li><a href="/about/">/about</a></li></ul>
+  </div>
+</header>
+<main>
+      <h1>Average Running Time of Quicksort</h1>
+<p>Nov 9, 2013</p>
+<p></p>
+
+<p>From an interesting <a href="http://aofa.cs.princeton.edu/lectures/lectures13/AA01-AofA.pdf">slide</a>.</p>
+
+<p>We denote $C_N$ as the <em>expected</em> number of comparisons used by sorting an array of length $N$.
+The recursive formula is like this:</p>
+
+<p>$$C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})$$</p>
+
+<p>which $N+1$ is the comparisons needed for partitioning, 
+and then plus $N$ ways of partitioning with equal probability.
+Also we have $C_1 = 0$.</p>
+
+<p>Noticing the symmetric parttern in the sum part, we get:</p>
+
+<p>$$C_N = (N+1) + \frac 2N \sum_{1\leq k \leq N} C_{k-1}$$</p>
+
+<p>then</p>
+
+<p>$$NC_N = N(N+1) + 2 \sum_{1\leq k \leq N} C_{k-1}$$</p>
+
+<p>Time to high school math. First, we write down same formula for N-1:</p>
+
+<p>$$(N-1)C_{N-1} = (N-1)N + 2 \sum_{1\leq k \leq N-1} C_{k-1}$$</p>
+
+<p>Then we subtract the above two equations to get:</p>
+
+<p>$$NC_N - (N-1)C_{N-1} = 2N + 2C_{N-1}$$</p>
+
+<p>$$NC_N = (N+1)C_{N-1} + 2N$$</p>
+
+<p>Key and tricky step, divide both side by $N(N+1)$:</p>
+
+<p>$$\frac{C_N}{N+1} = \frac{C_{N-1}}{N} + \frac{2}{N+1}$$</p>
+
+<p>Expand the right part to the end of the world:</p>
+
+<p>$$\begin{split}
+\frac{C_N}{N+1} &amp;= \frac{C_{N-1}}{N} + \frac 2{N+1} <br>
+&amp;= \frac{C_{N-2}}{N-1} + \frac 2N + \frac 2{N+1} <br>
+&amp;= \frac {C_1} 2 + \frac 23 + \dots + \frac 2N + \frac 2{N+1}
+\end{split}$$</p>
+
+<p>Ignore small items:</p>
+
+<p>$$c_N \sim 2N \sum_{1 \leq k \leq N} \frac 1k - 2N$$</p>
+
+<p>Finally, use the magic <a href="http://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant"><code class="language-plaintext highlighter-rouge">Euler constant</code></a> $\gamma$ = 0.57721…:</p>
+
+<p>$$\begin{split}
+c_N &amp;\sim 2N (\int_1^\infty \frac 1x \mathrm{d} x + \gamma) - 2N <br>
+&amp;=2N \ln N - 2(1-\gamma)N
+\end{split}$$</p>
+
+<p>It’s $O(N \log N)$.</p>
+
+
+    </main><footer>
+   <a href="https://github.com/scturtle"><svg><use xlink:href="/assets/icons.svg#github"></use></svg></a>
+   <a href="https://twitter.com/scturtle"><svg><use xlink:href="/assets/icons.svg#twitter"></use></svg></a>
+   <a href="https://t.me/scturtle"><svg><use xlink:href="/assets/icons.svg#telegram"></use></svg></a>
+   <a href="/feed.xml"><svg><use xlink:href="/assets/icons.svg#rss"></use></svg></a>
+</footer>
+</div>
+  </body>
+</html>

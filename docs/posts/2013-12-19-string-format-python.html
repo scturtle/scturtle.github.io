@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Python 字符串格式化详参</title>
+  <link rel="stylesheet" type="text/css" href="/assets/main.css">
+</head>
+<body>
+    <div class="container">
+<header>
+  <div class="menu">
+    <h1><a href="/">turtleblog</a></h1>
+    <ul><li><a href="/about/">/about</a></li></ul>
+  </div>
+</header>
+<main>
+      <h1>Python 字符串格式化详参</h1>
+<p>Dec 19, 2013</p>
+<p></p>
+
+<p><a href="http://docs.python.org/dev/library/string.html#formatspec">来源docs</a></p>
+
+<p><code class="language-plaintext highlighter-rouge">{}</code> 包裹的是替换域， <code class="language-plaintext highlighter-rouge">{{</code> 和 <code class="language-plaintext highlighter-rouge">}}</code>  可用来 escape。</p>
+
+<p>语法</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>替换域 ::=  "{" [域名] ["!" 转换] [":" 格式] "}"
+域名   ::=  参数名 ("." 属性名 | "[" 索引 "]")*
+参数名 ::=  [关键字 | 数字]
+属性名 ::=  关键字
+索引   ::=  数字 | 索引字符串
+索引   ::=  &lt;任何字符除了 "]"&gt; +
+转换   ::=  "r" | "s" | "a"
+格式   ::=  &lt;如下介绍&gt;
+</code></pre></div></div>
+
+<p>参数名要么是关键字（keyword=“…”）要么是数字（标识第几个参数，3.1中默认可忽略）。
+参数名后可加 <code class="language-plaintext highlighter-rouge">.属性名</code>（<code class="language-plaintext highlighter-rouge">getattr()</code>）或 <code class="language-plaintext highlighter-rouge">[索引]</code>（<code class="language-plaintext highlighter-rouge">__getitem__()</code>）。</p>
+
+<p>转换域进行格式化之前的强制类型转换（而不是默认的<code class="language-plaintext highlighter-rouge">__format__()</code>）。<code class="language-plaintext highlighter-rouge">!s</code> 调用 <code class="language-plaintext highlighter-rouge">str()</code>，<code class="language-plaintext highlighter-rouge">!r</code> 调用 <code class="language-plaintext highlighter-rouge">repr()</code>，<code class="language-plaintext highlighter-rouge">!a</code> 调用 <code class="language-plaintext highlighter-rouge">ascii()</code>。</p>
+
+<p>格式域控制字段宽度，对齐，填充，小数精度等。依据是每种类型自己定义的<code class="language-plaintext highlighter-rouge">微语言</code>。格式域可嵌套但只能包含域名。大多数内置类型支持默认的微语言：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>格式 ::=  [[fill]align][sign][#][0][width][,][.precision][type]
+fill     ::=  &lt;填充字符除了 '{' or '}'&gt;
+align ::=  "&lt;" | "&gt;" | "=" | "^"
+sign  ::=  "+" | "-" | " "
+width ::=  integer
+precision ::=  integer
+type ::=  "b" | "c" | "d" | "e" | "E" | "f" | "F" | "g" | "G" | "n" | "o" | "s" | "x" | "X" | "%"
+</code></pre></div></div>
+
+<p>align：左对齐，右对齐，填充符号和数字间，居中。</p>
+
+<p>sign：正数前+负数前-，正数前无负数前-，正数前空格负数前-。</p>
+
+<p>#：整数、浮点数、复数和 Decimal 使用<code class="language-plaintext highlighter-rouge">替代格式</code>。比如整数在用十六进制输出时添加<code class="language-plaintext highlighter-rouge">0x</code>前缀。</p>
+
+<p>width：前导<code class="language-plaintext highlighter-rouge">0</code>则相当于<code class="language-plaintext highlighter-rouge">fill='0' &amp; align='='</code>。</p>
+
+<p>,：数字自动添加千分号。</p>
+
+<p>precision：和<code class="language-plaintext highlighter-rouge"> type = "f" | "F" | "g" | "G" </code>控制浮点精度，或表示最大域空间。</p>
+
+<p>type：二进制，字符，十进制，科学计数，科学计数大写，定点，定点(NAN, INF)，
+<em>标准格式（太长）</em>，标准格式大写，<em>数字</em>，八进制，十六进制，十六进制大写，百分比。
+不写的话整数十进制，浮点数差不多是标准格式。</p>
+
+
+    </main><footer>
+   <a href="https://github.com/scturtle"><svg><use xlink:href="/assets/icons.svg#github"></use></svg></a>
+   <a href="https://twitter.com/scturtle"><svg><use xlink:href="/assets/icons.svg#twitter"></use></svg></a>
+   <a href="https://t.me/scturtle"><svg><use xlink:href="/assets/icons.svg#telegram"></use></svg></a>
+   <a href="/feed.xml"><svg><use xlink:href="/assets/icons.svg#rss"></use></svg></a>
+</footer>
+</div>
+  </body>
+</html>

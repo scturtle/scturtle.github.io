@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Exploring Writing foldl Using foldr</title>
+  <link rel="stylesheet" type="text/css" href="/assets/main.css">
+</head>
+<body>
+    <div class="container">
+<header>
+  <div class="menu">
+    <h1><a href="/">turtleblog</a></h1>
+    <ul><li><a href="/about/">/about</a></li></ul>
+  </div>
+</header>
+<main>
+      <h1>Exploring Writing foldl Using foldr</h1>
+<p>Jan 27, 2016</p>
+<p></p>
+
+<p>It is widely known that left folding can be implemented by right folding.
+But the implementation is not so obvious. Let’s try writing one from scratch.
+First, we need these two extensions of GHC to make life better.</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-}</span>
+</code></pre></div></div>
+
+<p>Let’s just ignore the original implementations in <code class="language-plaintext highlighter-rouge">Prelude</code>
+and try writing them by hand:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">import</span> <span class="nn">Prelude</span> <span class="k">hiding</span> <span class="p">(</span><span class="nf">foldr</span><span class="p">,</span> <span class="nf">foldl</span><span class="p">)</span>
+
+<span class="n">foldr</span> <span class="o">::</span> <span class="p">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldr</span> <span class="kr">_</span> <span class="n">r</span> <span class="kt">[]</span> <span class="o">=</span> <span class="n">r</span>
+<span class="n">foldr</span> <span class="n">f</span> <span class="n">r</span> <span class="p">(</span><span class="n">x</span><span class="o">:</span><span class="n">xs</span><span class="p">)</span> <span class="o">=</span> <span class="n">f</span> <span class="n">x</span> <span class="p">(</span><span class="n">foldr</span> <span class="n">f</span> <span class="n">r</span> <span class="n">xs</span><span class="p">)</span>
+
+<span class="n">foldl</span> <span class="o">::</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">r</span> <span class="kt">[]</span> <span class="o">=</span> <span class="n">r</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">a</span> <span class="p">(</span><span class="n">x</span><span class="o">:</span><span class="n">xs</span><span class="p">)</span> <span class="o">=</span> <span class="n">foldl</span> <span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">x</span><span class="p">)</span> <span class="n">xs</span>
+</code></pre></div></div>
+
+<p>If we want to write <code class="language-plaintext highlighter-rouge">foldl</code> using <code class="language-plaintext highlighter-rouge">foldr</code>,
+that defination should looks like this:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">foldl</span> <span class="o">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="o">=</span> <span class="n">foldr</span> <span class="n">undefined</span> <span class="n">undefined</span> <span class="n">undefined</span>
+</code></pre></div></div>
+
+<p>The only thing we can be sure is that we will still be working on list <code class="language-plaintext highlighter-rouge">bs</code>.
+So let’s refine the above one with this observation:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">foldl</span> <span class="o">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="o">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="o">::</span> <span class="kr">_</span> <span class="o">-&gt;</span> <span class="kr">_</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="kr">_</span>
+      <span class="n">fold</span> <span class="o">=</span> <span class="n">foldr</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">undefined</span> <span class="n">undefined</span> <span class="n">bs</span>
+</code></pre></div></div>
+
+<p>Let’s think about a small example. According to our original implantation,
+<code class="language-plaintext highlighter-rouge">foldl f i [b1, b2]</code> should be expanded into <code class="language-plaintext highlighter-rouge">f (f i b1) b2</code>
+but the form in <code class="language-plaintext highlighter-rouge">foldr g j [b1, b2]</code> is <code class="language-plaintext highlighter-rouge">g b1 (b g2 j)</code>.
+The most important step is the definition of <code class="language-plaintext highlighter-rouge">g</code> and <code class="language-plaintext highlighter-rouge">j</code>. 
+The function <code class="language-plaintext highlighter-rouge">g</code> should have type looks like <code class="language-plaintext highlighter-rouge">b -&gt; r -&gt; r</code> and
+if the first parameter is <code class="language-plaintext highlighter-rouge">b1</code>, the second parameter (<code class="language-plaintext highlighter-rouge">r</code>) should
+be able to use <code class="language-plaintext highlighter-rouge">f i b1</code> in itself to re-build the original <code class="language-plaintext highlighter-rouge">foldl</code> expansion.
+That sounds like a continuation <code class="language-plaintext highlighter-rouge">a -&gt; r</code> instead of just <code class="language-plaintext highlighter-rouge">r</code>.
+Let’s try this idea:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">foldl</span> <span class="o">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="o">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="o">::</span> <span class="p">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">fold</span> <span class="o">=</span> <span class="n">foldr</span>
+      <span class="n">g</span> <span class="o">::</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="o">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">i</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span>
+</code></pre></div></div>
+
+<p>Bad thing happens.
+We get two type errors because now <code class="language-plaintext highlighter-rouge">g</code> and <code class="language-plaintext highlighter-rouge">fold</code> are of type ending with <code class="language-plaintext highlighter-rouge">(a -&gt; r)</code>.
+Let’s look into them one by one.
+For <code class="language-plaintext highlighter-rouge">g</code>, we are using a <code class="language-plaintext highlighter-rouge">b</code> to turn a continuation into another continuation.
+So <code class="language-plaintext highlighter-rouge">g</code> actually need a extra parameter <code class="language-plaintext highlighter-rouge">a</code>.
+And <code class="language-plaintext highlighter-rouge">fold</code> return a continuation and need an initial value <code class="language-plaintext highlighter-rouge">a</code> to get the final result.
+Let’s refine the signature and definition:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">foldl</span> <span class="o">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="o">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="o">::</span> <span class="p">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">fold</span> <span class="o">=</span> <span class="n">foldr</span>
+      <span class="n">g</span> <span class="o">::</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="o">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">i</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span> <span class="n">undefined</span>
+</code></pre></div></div>
+
+<p>Now our compiler warns us that <code class="language-plaintext highlighter-rouge">a</code> is not used.
+According to its type, the only place to use it is where <code class="language-plaintext highlighter-rouge">i</code> is.
+This makes sense because we are using the future result in our computation.
+But where <code class="language-plaintext highlighter-rouge">i</code> should go? The only place seems to using it to complete our <code class="language-plaintext highlighter-rouge">fold</code>.
+(I think this is the only tricky part and hope to find better thoughts on this in the future.)
+Let’s refine it again:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">foldl</span> <span class="o">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="o">=</span>
+  <span class="kr">let</span> <span class="n">fold</span> <span class="o">::</span> <span class="p">(</span><span class="n">b</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">fold</span> <span class="o">=</span> <span class="n">foldr</span>
+      <span class="n">g</span> <span class="o">::</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span>
+      <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="o">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">fold</span> <span class="n">g</span> <span class="n">undefined</span> <span class="n">bs</span> <span class="n">i</span>
+</code></pre></div></div>
+
+<p>We are almost done and only one <code class="language-plaintext highlighter-rouge">undefined</code> is left.
+Notice that the final result is of type <code class="language-plaintext highlighter-rouge">r</code> but our target type is <code class="language-plaintext highlighter-rouge">a</code>.
+That just means <code class="language-plaintext highlighter-rouge">r</code> is <code class="language-plaintext highlighter-rouge">a</code>.
+So the only left <code class="language-plaintext highlighter-rouge">undefined</code> is of type <code class="language-plaintext highlighter-rouge">forall a. a -&gt; a</code>
+and its only implantation is <code class="language-plaintext highlighter-rouge">id</code> according to parametricity.
+This also fits our experience with continuation by finishing it with <code class="language-plaintext highlighter-rouge">\a -&gt; a</code>.
+Our final version is:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">foldl</span> <span class="o">::</span> <span class="n">forall</span> <span class="n">a</span> <span class="n">b</span><span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">a</span>
+<span class="n">foldl</span> <span class="n">f</span> <span class="n">i</span> <span class="n">bs</span> <span class="o">=</span>
+  <span class="kr">let</span> <span class="n">g</span> <span class="n">b1</span> <span class="n">cont</span> <span class="n">a</span> <span class="o">=</span> <span class="n">cont</span> <span class="p">(</span><span class="n">f</span> <span class="n">a</span> <span class="n">b1</span><span class="p">)</span>
+  <span class="kr">in</span>  <span class="n">foldr</span> <span class="n">g</span> <span class="n">id</span> <span class="n">bs</span> <span class="n">i</span>
+</code></pre></div></div>
+
+<p>It works!</p>
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">λ</span><span class="o">&gt;</span> <span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">r</span> <span class="n">x</span> <span class="o">-&gt;</span> <span class="n">r</span> <span class="o">++</span> <span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="p">[</span><span class="mi">0</span> <span class="o">::</span> <span class="kt">Int</span><span class="p">]</span> <span class="p">[</span><span class="mi">1</span> <span class="o">..</span> <span class="mi">10</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>
+</code></pre></div></div>
+
+
+    </main><footer>
+   <a href="https://github.com/scturtle"><svg><use xlink:href="/assets/icons.svg#github"></use></svg></a>
+   <a href="https://twitter.com/scturtle"><svg><use xlink:href="/assets/icons.svg#twitter"></use></svg></a>
+   <a href="https://t.me/scturtle"><svg><use xlink:href="/assets/icons.svg#telegram"></use></svg></a>
+   <a href="/feed.xml"><svg><use xlink:href="/assets/icons.svg#rss"></use></svg></a>
+</footer>
+</div>
+  </body>
+</html>

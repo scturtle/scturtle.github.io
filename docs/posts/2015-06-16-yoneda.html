@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Yoneda Lemma Explained in Haskell</title>
+  <link rel="stylesheet" type="text/css" href="/assets/main.css">
+<script>MathJax={"tex":{"inlineMath":[["$","$"],["\\(","\\)"]],"displayMath":[["$$","$$"],["\\[","\\]"]]},"svg":{"fontCache":"global"}}</script><script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="container">
+<header>
+  <div class="menu">
+    <h1><a href="/">turtleblog</a></h1>
+    <ul><li><a href="/about/">/about</a></li></ul>
+  </div>
+</header>
+<main>
+      <h1>Yoneda Lemma Explained in Haskell</h1>
+<p>Jun 16, 2015</p>
+<p></p>
+
+<blockquote>
+  <p>When you need something to go faster, hit it with the Yoneda lemma.
+Still isn’t fast enough? Use it again.
+—— <a href="https://twitter.com/kmett/status/546533863636627456">Edward Kmett</a></p>
+</blockquote>
+
+<p><a href="https://en.wikipedia.org/wiki/Yoneda_lemma">Yoneda lemma</a>
+may be the first understanding challenge in category theory.
+For an arbitrary functor $F$ from a category $C$ to the category $Set$,
+Yoneda lemma says:
+for any object $A$ of $C$, the natural transformations from
+the <a href="http://ncatlab.org/nlab/show/hom-functor">hom-functor</a> $h_A$ to $F$
+are in one-to-one correspondence with the elements in $F(A)$.
+That’s is,</p>
+
+<p>$$ \mathrm{Nat}(h_A,F) \cong F(A). $$</p>
+
+<p>Doesn’t it hurt your brain? The proof is even more tedious.
+In another way, however, it just states that every object
+can be determined by how other objects map into it.
+The interesting thing is, once translated into Haskell,
+the Yoneda lemma becomes more readable and understandable.</p>
+
+<p>In Haskell the category $C$ and $Set$ are both $Hask$,
+the category of all types in Haskell.
+And a natural transformation is just a polymorphic function which,
+in this case, from functor <code class="language-plaintext highlighter-rouge">(-&gt;) a</code> to functor <code class="language-plaintext highlighter-rouge">f</code>.
+So in Haskell we can write Yoneda lemma as</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>(forall b. (a -&gt; b) -&gt; f b) ~ f a
+</code></pre></div></div>
+
+<p>which means an isomorphism between a polymorphic function and a type.
+This can be interpreted in the following way: for a fixed type <code class="language-plaintext highlighter-rouge">a</code> and a functor <code class="language-plaintext highlighter-rouge">f</code>,
+if there is a polymorphic function <code class="language-plaintext highlighter-rouge">g</code> that knows how to convert any <code class="language-plaintext highlighter-rouge">a -&gt; b</code> into <code class="language-plaintext highlighter-rouge">f b</code>,
+then this <code class="language-plaintext highlighter-rouge">g</code> is just something holding a <code class="language-plaintext highlighter-rouge">f a</code>
+(and remembering to <code class="language-plaintext highlighter-rouge">fmap</code> any <code class="language-plaintext highlighter-rouge">a -&gt; b</code> on it), and vice versa.</p>
+
+<p>To prove this isomorphism, we need to show that for the following two conversion functions:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fw</span> <span class="o">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="n">a</span>
+<span class="n">fw</span> <span class="n">f</span> <span class="o">=</span> <span class="n">f</span> <span class="n">id</span>
+
+<span class="n">bw</span> <span class="o">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">f</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">bw</span> <span class="n">x</span> <span class="n">f</span> <span class="o">=</span> <span class="n">fmap</span> <span class="n">f</span> <span class="n">x</span>
+</code></pre></div></div>
+
+<p>the following two statements are both true:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>fw . bw = id
+bw . fw = id
+</code></pre></div></div>
+
+<p>The first one is easy:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>(fw . bw) fa
+= fw (bw fa)
+= (bw fa) id
+= bw fa id
+= fmap id fa
+= fa
+</code></pre></div></div>
+
+<p>and there are two steps notable in the second proof:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bw (fw g) a2b
+= fmap a2b (g id)
+= g (fmap a2b id) (*)
+= g (a2b . id)    (**)
+= g a2b
+</code></pre></div></div>
+
+<p>In <code class="language-plaintext highlighter-rouge">(*)</code> we swap <code class="language-plaintext highlighter-rouge">g</code> and <code class="language-plaintext highlighter-rouge">fmap a2b</code> when apply them to <code class="language-plaintext highlighter-rouge">id</code> in sequence.
+This is because the <code class="language-plaintext highlighter-rouge">forall</code> in the polymorphic function <code class="language-plaintext highlighter-rouge">g</code>
+makes it a natural transformation from functor <code class="language-plaintext highlighter-rouge">(-&gt; a)</code> to functor <code class="language-plaintext highlighter-rouge">f</code>
+and ensure that the following diagram commute:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                  g
+      (a -&gt; b) --------&gt; f b
+         ^                ^
+         |                |
+fmap a2b |                | fmap a2b
+         |                |
+         |                |
+      (a -&gt; a) --------&gt; f a
+                  g
+</code></pre></div></div>
+
+<p>Commutation means the both ways from bottom left to top right are the same.
+So we can swap <code class="language-plaintext highlighter-rouge">g</code> and <code class="language-plaintext highlighter-rouge">fmap a2b</code>. Also notice that the bottom left is just <code class="language-plaintext highlighter-rouge">id</code>.
+The <code class="language-plaintext highlighter-rouge">(**)</code> step is an application of the <code class="language-plaintext highlighter-rouge">fmap</code> definition of functor <code class="language-plaintext highlighter-rouge">(-&gt; a)</code>,
+which is just function composition <code class="language-plaintext highlighter-rouge">(.)</code>. QED.</p>
+
+
+    </main><footer>
+   <a href="https://github.com/scturtle"><svg><use xlink:href="/assets/icons.svg#github"></use></svg></a>
+   <a href="https://twitter.com/scturtle"><svg><use xlink:href="/assets/icons.svg#twitter"></use></svg></a>
+   <a href="https://t.me/scturtle"><svg><use xlink:href="/assets/icons.svg#telegram"></use></svg></a>
+   <a href="/feed.xml"><svg><use xlink:href="/assets/icons.svg#rss"></use></svg></a>
+</footer>
+</div>
+  </body>
+</html>
