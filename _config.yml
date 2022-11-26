@@ -14,3 +14,10 @@ plugins:
 jekyll-spaceship:
   processors:
     - mathjax-processor
+    - mermaid-processor
+  mermaid-processor:
+    syntax:
+      code: 'mermaid'
+    config:
+      theme: neutral
+    src: https://mermaid.ink/img/

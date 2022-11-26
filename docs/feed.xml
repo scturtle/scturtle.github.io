@@ -1,4 +1,193 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.2">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2022-06-21T11:48:06+08:00</updated><id>/feed.xml</id><title type="html">turtleblog</title><subtitle>No turtles were harmed during coding.</subtitle><entry><title type="html">《Software Engineering at Google》笔记</title><link href="/posts/2022-03-05-swe-at-google.html" rel="alternate" type="text/html" title="《Software Engineering at Google》笔记" /><published>2022-03-05T00:00:00+08:00</published><updated>2022-03-05T00:00:00+08:00</updated><id>/posts/swe-at-google</id><content type="html" xml:base="/posts/2022-03-05-swe-at-google.html"><![CDATA[<h1 id="o-前言">O. 前言</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2022-11-26T15:29:18+08:00</updated><id>/feed.xml</id><title type="html">turtleblog</title><subtitle>No turtles were harmed during coding.</subtitle><entry><title type="html">Static Single Assignment</title><link href="/posts/2022-11-26-ssa.html" rel="alternate" type="text/html" title="Static Single Assignment" /><published>2022-11-26T00:00:00+08:00</published><updated>2022-11-26T00:00:00+08:00</updated><id>/posts/ssa</id><content type="html" xml:base="/posts/2022-11-26-ssa.html"><![CDATA[<h1 id="cfg">CFG</h1>
+
+<p>抄维基一个例子，如下一段代码：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">3</span>
+<span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">y</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">3</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</code></pre></div></div>
+
+<p>可以转换为 control-flow graph：</p>
+
+<p><img class="mermaid" src="https://mermaid.ink/img/eyJjb2RlIjoiZmxvd2NoYXJ0IFREXG5BW3ggPSA1XFxueCA9IHggLSAzXFxueCA8IDM_XVxuQlt5ID0geCAqIDJcXG53ID0geV1cbkNbeSA9IHggLSAzXVxuRFt3ID0geCAtIHlcXG56ID0geCArIHldXG5lbnRyeSAtLT4gQVxuQSAtLT4gQlxuQSAtLT4gQ1xuQiAtLT4gRFxuQyAtLT4gRCIsIm1lcm1haWQiOnsidGhlbWUiOiJuZXV0cmFsIn19" /></p>
+
+<h1 id="ssa">SSA</h1>
+
+<p>SSA (static single assignment) 形式的含义是 IR 里每个变量仅被赋值一次。</p>
+
+<p>最简单的办法是给每一个变量加一个后缀，变成一个新的变量：</p>
+
+<p><img class="mermaid" src="https://mermaid.ink/img/eyJjb2RlIjoiZmxvd2NoYXJ0IFREXG5BW3gxID0gNVxcbngyID0geDEgLSAzXFxueDIgPCAzP11cbkJbeTEgPSB4MiAqIDJcXG53MSA9IHkxXVxuQ1t5MiA9IHgyIC0gM11cbkRbXCJ5MyA9IM6mKHkxLCB5MilcXG53MiA9IHgyIC0geTNcXG56MSA9IHgyICsgeTNcIl1cbmVudHJ5IC0tPiBBXG5BIC0tPiBCXG5BIC0tPiBDXG5CIC0tPiBEXG5DIC0tPiBEIiwibWVybWFpZCI6eyJ0aGVtZSI6Im5ldXRyYWwifX0" /></p>
+
+<p>为了解决 node 汇入时该使用哪一个变量的问题，引入了 Φ(phi)-function。含义是从第几个前驱 node 来的话就取第几个参数变量。</p>
+
+<p>如果 <code class="language-plaintext highlighter-rouge">y2 = x2 - 3</code> 这个 node 里的 <code class="language-plaintext highlighter-rouge">y2</code> 使用 <code class="language-plaintext highlighter-rouge">y1</code> 的名字的话，最后一个 block  可以只用 <code class="language-plaintext highlighter-rouge">y1</code> 也就避免了插入 Φ，得到了更简单的表示。</p>
+
+<p>如何得到 minimal SSA 需要引入 dominator tree。</p>
+
+<h1 id="dominator-tree">dominator tree</h1>
+
+<p>回到最初的 CFG：</p>
+
+<p><img class="mermaid" src="https://mermaid.ink/img/eyJjb2RlIjoiZmxvd2NoYXJ0IFREXG5BW0E6XFxueCA9IDVcXG54ID0geCAtIDNcXG54IDwgMz9dXG5CW0I6XFxueSA9IHggKiAyXFxudyA9IHldXG5DW0M6XFxueSA9IHggLSAzXVxuRFtEOlxcbncgPSB4IC0geVxcbnogPSB4ICsgeV1cbmVudHJ5IC0tPiBBXG5BIC0tPiBCXG5BIC0tPiBDXG5CIC0tPiBEXG5DIC0tPiBEIiwibWVybWFpZCI6eyJ0aGVtZSI6Im5ldXRyYWwifX0" /></p>
+
+<p>如果从 entry 到 node Y 的每一条路径都经过了 node X 的话，我们就说 X dominate 了 Y。（后面简写为 <code class="language-plaintext highlighter-rouge">X dom Y</code>。）</p>
+
+<p>Domination 具有自反性（<code class="language-plaintext highlighter-rouge">X dom X</code>）和传递性（<code class="language-plaintext highlighter-rouge">X dom Y, Y dom Z =&gt; X dom Z</code>）。</p>
+
+<p>也可以说 X 是 Y 的 dominator。Y 的 dominator 组成集合 <code class="language-plaintext highlighter-rouge">dom(Y)</code>。</p>
+
+<p>如上图，<code class="language-plaintext highlighter-rouge">dom(A) = {A}</code>，<code class="language-plaintext highlighter-rouge">dom(B) = {A, B}</code>，<code class="language-plaintext highlighter-rouge">dom(C) = {A, C}</code>。</p>
+
+<p>用集合也可以给出递归定义：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dom(Y) = ∩(dom(X) for X in preds(Y)) ∪ {Y}
+</code></pre></div></div>
+
+<p>Y 的 immediate dominator，简写为 <code class="language-plaintext highlighter-rouge">idom(Y)</code>，是指非 Y 但离 Y 最近的 dominator。</p>
+
+<p>可以证明 <code class="language-plaintext highlighter-rouge">idom(Y)</code> 最多只有一个。那么 <code class="language-plaintext highlighter-rouge">idom</code> 关系可以组成一颗 dominator tree。</p>
+
+<p><code class="language-plaintext highlighter-rouge">dom(Y)</code> 集合的定义也可以反过来用 <code class="language-plaintext highlighter-rouge">idom</code> 表示：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dom(Y) = {Y} ∪ {idom(Y)} ∪ {idom(idom(Y))} ··· ∪ {E}
+</code></pre></div></div>
+
+<h1 id="dominance-frontier">dominance frontier</h1>
+
+<p>简写为 <code class="language-plaintext highlighter-rouge">DF(X)</code>，可以理解为那些 <em>恰好</em> 不再受 X dominate 的 node 的集合。</p>
+
+<p>比如 X dom 了 Z 的一个前驱 Y，但 Z 还有别的没有被 X dom 的前驱，导致 X 并没有 dom Z，那么 Z 就属于 <code class="language-plaintext highlighter-rouge">DF(X)</code>。</p>
+
+<p>可以看出 dominance frontier 是单个变量的不同定义在 CFG 中交汇的地方，是插入 Φ-function 的理想地方。</p>
+
+<p>但插入 Φ-function 其实又算是一次变量定义。所以通常会先求一个 iterated dominance frontier（设 <code class="language-plaintext highlighter-rouge">defs(v)</code> 是定义了变量 <code class="language-plaintext highlighter-rouge">v</code> 的 nodes）：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>DF+(v) = DF(defs(v)) u DF(DF(defs(v))) u DF(DF(DF(defs(v)))) ...
+</code></pre></div></div>
+
+<p>也叫做 <code class="language-plaintext highlighter-rouge">joins(v)</code>。</p>
+
+<h1 id="reverse-postorder">Reverse postorder</h1>
+
+<p>顾名思义，就是把后续遍历得到的顺序反序一下。相当于 CFG 这种有向有环图上的拓扑序。</p>
+
+<p>按照该顺序来遍历 CFG 中的 node，可以保证在遍历 node 前已经遍历完它的 dominators  了。所以后文算法中遍历 node 的顺序通常指该顺序。</p>
+
+<h1 id="dominance-algorithm">Dominance algorithm</h1>
+
+<p>根据前面定义，一个 naive 的求 dominator 集合的迭代算法可以用伪代码表示为：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+    <span class="n">dom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span> <span class="p">...</span> <span class="n">N</span><span class="p">}</span>
+<span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">while</span> <span class="n">changed</span><span class="p">:</span>
+    <span class="n">changed</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="n">new_dom</span> <span class="o">=</span> <span class="err">∩</span><span class="p">(</span><span class="n">dom</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">preds</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="err">∪</span> <span class="p">{</span><span class="n">n</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">new_dom</span> <span class="o">!=</span> <span class="n">dom</span><span class="p">[</span><span class="n">n</span><span class="p">]:</span>
+            <span class="n">dom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_dom</span>
+            <span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
+</code></pre></div></div>
+
+<p>因为 <code class="language-plaintext highlighter-rouge">dom(...)</code> 集合可以看做是 dominator tree 上沿着 <code class="language-plaintext highlighter-rouge">idom[...]</code> 的向上递归到 entry 一条路径，那么 <code class="language-plaintext highlighter-rouge">dom(A) ∩ dom(B)</code> 就是路径的的共同前缀。</p>
+
+<p>用 <code class="language-plaintext highlighter-rouge">idom</code> 数组来替代集合的话，求并集变成了求两条路径的最近公共祖先：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">while</span> <span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">:</span>
+        <span class="n">a_idx</span> <span class="o">=</span> <span class="n">get_reverse_postorder_index</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">b_idx</span> <span class="o">=</span> <span class="n">get_reverse_postorder_index</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">a_idx</span> <span class="o">&lt;</span> <span class="n">b_idx</span><span class="p">:</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">idom</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">idom</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">a</span>
+</code></pre></div></div>
+
+<p>原算法可以简化为求 <code class="language-plaintext highlighter-rouge">idom[...]</code> 也即 dominator tree 的算法：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+    <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">idom</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+<span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">while</span> <span class="n">changed</span><span class="p">:</span>
+    <span class="n">changed</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">entry</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">new_idom</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># pick first predecessor
+</span>        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pred</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="mi">1</span><span class="p">:]:</span>  <span class="c1"># rest predecessors
+</span>            <span class="k">if</span> <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">new_idom</span> <span class="o">=</span> <span class="n">intersect</span><span class="p">(</span><span class="n">new_idom</span><span class="p">,</span> <span class="n">idom</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">!=</span> <span class="n">new_idom</span><span class="p">:</span>
+            <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_idom</span>
+            <span class="n">changed</span> <span class="o">=</span> <span class="bp">True</span>
+</code></pre></div></div>
+
+<p>有了 dominator tree 之后求 dominance frontier 也很简单。在交汇点 <code class="language-plaintext highlighter-rouge">n</code> 和 <code class="language-plaintext highlighter-rouge">idom[n]</code> 之间所有节点，都有 <code class="language-plaintext highlighter-rouge">n</code> 作为其 dominance frontier 的一员：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">preds</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># is a join point
+</span>        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">preds</span><span class="p">[</span><span class="n">n</span><span class="p">]:</span>
+            <span class="n">runner</span> <span class="o">=</span> <span class="n">p</span>
+            <span class="k">while</span> <span class="n">runner</span> <span class="o">!=</span> <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]:</span>
+                <span class="n">df</span><span class="p">[</span><span class="n">runner</span><span class="p">].</span><span class="n">add</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># may dup
+</span>                <span class="n">runner</span> <span class="o">=</span> <span class="n">idom</span><span class="p">[</span><span class="n">runner</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>这就是 <a href="https://www.cs.rice.edu/~keith/Embed/dom.pdf">《A Simple, Fast Dominance Algorithm》</a> 中提出的算法。</p>
+
+<h1 id="φ-function-insertion-and-variable-renaming">φ-function insertion and variable renaming</h1>
+
+<p>每一个变量 v 用 dominance frontier 求 <code class="language-plaintext highlighter-rouge">joins(v)</code>，顺便插入 Φ-function：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+    <span class="n">saw</span> <span class="o">=</span> <span class="p">{}</span>     <span class="c1"># blocks where Φ is added
+</span>    <span class="n">w</span> <span class="o">=</span> <span class="n">queue</span><span class="p">()</span>  <span class="c1"># working list
+</span>    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">defs</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
+        <span class="n">w</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">w</span><span class="p">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">y</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">saw</span><span class="p">:</span>
+                <span class="n">add</span> <span class="n">v</span> <span class="o">=</span> <span class="n">Φ</span><span class="p">(...)</span> <span class="n">at</span> <span class="n">start</span> <span class="n">of</span> <span class="n">y</span>
+                <span class="n">saw</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">y</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defs</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
+                    <span class="n">w</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>这时变量名还都是原变量名，还不是 SSA，需要做一次 variable renaming。</p>
+
+<p>做法是从 entry 递归向下，一边改新变量名，一边顺便记住最后使用的新变量名，以便后续节点做替换：</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">ssa_rename_rec</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="ow">in</span> <span class="n">saw</span><span class="p">:</span>
+        <span class="k">continue</span>
+    <span class="n">saw</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">node</span><span class="p">:</span>  <span class="c1"># for each instruction in node
+</span>        <span class="n">replace</span> <span class="n">every</span> <span class="n">var</span> <span class="n">used</span> <span class="ow">in</span> <span class="n">inst</span> <span class="k">with</span> <span class="n">last</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">inst</span> <span class="n">defined</span> <span class="n">var</span><span class="p">:</span>  <span class="c1"># maybe store inst or Φ-function
+</span>            <span class="n">create</span> <span class="ow">and</span> <span class="n">replace</span> <span class="k">with</span> <span class="n">new_var</span> <span class="n">name</span>
+            <span class="n">last</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_var</span>
+
+    <span class="k">for</span> <span class="n">child</span> <span class="n">of</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">dominator</span> <span class="n">tree</span><span class="p">:</span>
+        <span class="c1"># child is immediately dominated by this node
+</span>        <span class="n">ssa_rename_rec</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">copy</span><span class="p">(</span><span class="n">last</span><span class="p">))</span>
+
+<span class="n">ssa_rename_rec</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h1 id="application">Application</h1>
+
+<p><a href="https://zenodo.org/record/3736363">《Bringing GNU Emacs to Native Code》</a> 就用到了以上的算法。</p>
+
+<p>可以在 <a href="https://github.com/emacs-mirror/emacs/blob/0369dcacf30aff6d4f733872058fa2446330fd02/lisp/emacs-lisp/comp.el">这里</a> 看到整套算法的 lisp 实现。</p>
+
+<h1 id="reference">Reference</h1>
+
+<p><a href="https://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf">《Efficiently computing static single assignment form and the control dependence graph》</a></p>
+
+<p><a href="https://pfalcon.github.io/ssabook/latest/book-full.pdf">《Static Single Assignment Book》</a></p>]]></content><author><name></name></author><summary type="html"><![CDATA[CFG]]></summary></entry><entry><title type="html">《Software Engineering at Google》笔记</title><link href="/posts/2022-03-05-swe-at-google.html" rel="alternate" type="text/html" title="《Software Engineering at Google》笔记" /><published>2022-03-05T00:00:00+08:00</published><updated>2022-03-05T00:00:00+08:00</updated><id>/posts/swe-at-google</id><content type="html" xml:base="/posts/2022-03-05-swe-at-google.html"><![CDATA[<h1 id="o-前言">O. 前言</h1>
 
 <blockquote>
   <p>The great thing about tech is that there is never only one way to do something. Instead, there is a series of trade-offs we all must make depending on the circumstan‐ ces of our team and situation.
