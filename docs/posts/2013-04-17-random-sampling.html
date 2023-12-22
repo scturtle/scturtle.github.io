@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Random Sampling | turtleblog</title>
+<link rel="stylesheet" href="/scss/main.min.1ba4542362e054b04dcc1f2b7adad1e43300c04288cbb3353f53042bc5dd86b3.css" integrity="sha256-G6RUI2LgVLBNzB8retrR5DMAwEKIy7M1P1MEK8XdhrM=">
+
+</head>
+<body>
+<main>
+<header>
+<div class="menu">
+  <h1><a href="/">turtleblog</a></h1>
+  <ul>
+    <li><a href="/about.html">/about</a></li>
+  </ul>
+</div>
+
+</header>
+
+  <h1>Random Sampling</h1>
+  
+  
+  <time datetime="2013-04-17T08:00:00&#43;08:00">April 17, 2013</time>
+  <p>Given a set of items, choosing random one with equal probability can be done by <code>random.choice(items)</code>.
+But what if we are given items one by one without knowing the length of the whole set?</p>
+<p>There is a simple algorithm: For the $k$-th item, we give up previous selection and choose this one with probability $\frac 1 k$.
+Proof as follows: If we select the $k$-th item, it means that we choose it with probability $\frac 1 k$ and give up all successors.
+Product of probabilities of all these choices is:</p>
+<p>$$ p_k = \frac 1 k \times \frac {k} {k+1} \times \cdots \times \frac {n-2}{n-1} \times \frac {n-1} n = \frac 1 n $$</p>
+<p>Codes in Python:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">import</span> <span style="font-weight:bold">random</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="font-weight:bold">def</span> choice(items):
+</span></span><span style="display:flex;"><span>    selection = <span style="font-weight:bold">None</span>
+</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> i, item <span style="font-weight:bold">in</span> enumerate(items):
+</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> random.randint(0, i) == 0:
+</span></span><span style="display:flex;"><span>            selection = item
+</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">return</span> selection
+</span></span></code></pre></div><p>We can generalize this algorithm. For a set of items, each one is associated with a weight $w_i$.
+Our goal is to select a random one based on its weight ratio.
+The algorithm is similar to the previous one: For the $k$-th item, replace the current selection with it with probability $\frac {w_k} {\sum_{i=1}^k w_i}$.
+Proof is analogical:</p>
+<p>$$p_k = \frac {w_k} {\sum_{i=1}^k w_i} \times \frac {\sum_{i=1}^k w_i} {\sum_{i=1}^{k+1} w_i}
+\times \cdots \times \frac {\sum_{i=1}^{n-2} w_i} {\sum_{i=1}^{n-1} w_i} \times \frac {\sum_{i=1}^{n-1} w_i} {\sum_{i=1}^{n} w_i} = \frac {w_k} {\sum_{i=1}^n w_i}$$</p>
+<p>Codes in Python:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">def</span> weightedChoice(items, weights):
+</span></span><span style="display:flex;"><span>    selection = <span style="font-weight:bold">None</span>
+</span></span><span style="display:flex;"><span>    total_weight = 0.0
+</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> item, weight <span style="font-weight:bold">in</span> zip(items, weights):
+</span></span><span style="display:flex;"><span>        total_weight += weight
+</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> random.random() * total_weight &lt; weight:
+</span></span><span style="display:flex;"><span>            selection = item
+</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">return</span> selection
+</span></span></code></pre></div><p>There is another amazing method to do this weighted random sampling:
+For each item, get a random $r_i \in [0, 1]$,
+and <em>reweight</em> this item as $w&rsquo;_i = r_i^{1 / {w_i}}$.
+Then we can select the one with the top new weight. Proof of this is a bit annoying.</p>
+<p>If we choose the $i$-th item at last, this means $\forall j\neq i, w&rsquo;_j &lt;w&rsquo;_i$. As $r_i \in [0, 1]$, the probability is:</p>
+<p>$$ p_i = \int_0^1 p(\forall j\neq i, w&rsquo;_j &lt;w&rsquo;_i)\ \mathrm{d}\ r_i $$</p>
+<p>$r_j$ is independent with each other. So:</p>
+<p>$$ p_i = \int_0^1 \prod_{j \neq i} p(w&rsquo;_j &lt;w&rsquo;_i)\ \mathrm{d} \ r_i $$</p>
+<p>As $r_j \in [0, 1]$, the inner probability can be simplified as:</p>
+<p>$$ p(w&rsquo;_j &lt;w&rsquo;_i) = p(r_j^{1 / w_j} &lt; r_i^{1 / w_i}) = p(r_j &lt; r_i^{w_j / w_i}) = r_i^{w_j / w_i} $$</p>
+<p>So:</p>
+<p>$$ p_i = \int_0^1 \prod_{j \neq i} r_i^{w_j / w_i}\ \mathrm{d}\ r_i
+= \int_0^1 r_i^{(w-w_i) / w_i}\ \mathrm{d}\ r_i = \frac {w_i} w $$</p>
+<p>Same as our expectation.</p>
+<p>This blog is basically a summary of
+<a href="http://www.gocalf.com/blog/random-selection.html">these</a>
+<a href="http://www.gocalf.com/blog/weighted-random-selection.html">three</a>
+<a href="http://www.gocalf.com/blog/weighted-random-selection-2.html">blogs</a>.
+Refer to them for more content.</p>
+
+  <script>MathJax={"tex":{"inlineMath":[["$","$"],["\\(","\\)"]],"displayMath":[["$$","$$"],["\\[","\\]"]]}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+<footer>
+<a href="https://github.com/scturtle"><svg><use xlink:href="/icons.svg#github"></use></svg></a>
+<a href="https://twitter.com/scturtle"><svg><use xlink:href="/icons.svg#twitter"></use></svg></a>
+<a href="https://t.me/scturtle"><svg><use xlink:href="/icons.svg#telegram"></use></svg></a>
+<a href="/feed.xml"><svg><use xlink:href="/icons.svg#rss"></use></svg></a>
+
+</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Python 字符串格式化详参 | turtleblog</title>
+<link rel="stylesheet" href="/scss/main.min.1ba4542362e054b04dcc1f2b7adad1e43300c04288cbb3353f53042bc5dd86b3.css" integrity="sha256-G6RUI2LgVLBNzB8retrR5DMAwEKIy7M1P1MEK8XdhrM=">
+
+</head>
+<body>
+<main>
+<header>
+<div class="menu">
+  <h1><a href="/">turtleblog</a></h1>
+  <ul>
+    <li><a href="/about.html">/about</a></li>
+  </ul>
+</div>
+
+</header>
+
+  <h1>Python 字符串格式化详参</h1>
+  
+  
+  <time datetime="2013-12-19T08:00:00&#43;08:00">December 19, 2013</time>
+  <p><a href="http://docs.python.org/dev/library/string.html#formatspec">来源docs</a></p>
+<p><code>{}</code> 包裹的是替换域，{% raw %} <code>{{</code> 和 <code>}}</code> {% endraw %} 可用来 escape。</p>
+<p>语法</p>
+<pre tabindex="0"><code>替换域 ::=  &#34;{&#34; [域名] [&#34;!&#34; 转换] [&#34;:&#34; 格式] &#34;}&#34;
+域名   ::=  参数名 (&#34;.&#34; 属性名 | &#34;[&#34; 索引 &#34;]&#34;)*
+参数名 ::=  [关键字 | 数字]
+属性名 ::=  关键字
+索引   ::=  数字 | 索引字符串
+索引   ::=  &lt;任何字符除了 &#34;]&#34;&gt; +
+转换   ::=  &#34;r&#34; | &#34;s&#34; | &#34;a&#34;
+格式   ::=  &lt;如下介绍&gt;
+</code></pre><p>参数名要么是关键字（keyword=“&hellip;”）要么是数字（标识第几个参数，3.1中默认可忽略）。
+参数名后可加 <code>.属性名</code>（<code>getattr()</code>）或 <code>[索引]</code>（<code>__getitem__()</code>）。</p>
+<p>转换域进行格式化之前的强制类型转换（而不是默认的<code>__format__()</code>）。<code>!s</code> 调用 <code>str()</code>，<code>!r</code> 调用 <code>repr()</code>，<code>!a</code> 调用 <code>ascii()</code>。</p>
+<p>格式域控制字段宽度，对齐，填充，小数精度等。依据是每种类型自己定义的<code>微语言</code>。格式域可嵌套但只能包含域名。大多数内置类型支持默认的微语言：</p>
+<pre tabindex="0"><code>格式 ::=  [[fill]align][sign][#][0][width][,][.precision][type]
+fill     ::=  &lt;填充字符除了 &#39;{&#39; or &#39;}&#39;&gt;
+align ::=  &#34;&lt;&#34; | &#34;&gt;&#34; | &#34;=&#34; | &#34;^&#34;
+sign  ::=  &#34;+&#34; | &#34;-&#34; | &#34; &#34;
+width ::=  integer
+precision ::=  integer
+type ::=  &#34;b&#34; | &#34;c&#34; | &#34;d&#34; | &#34;e&#34; | &#34;E&#34; | &#34;f&#34; | &#34;F&#34; | &#34;g&#34; | &#34;G&#34; | &#34;n&#34; | &#34;o&#34; | &#34;s&#34; | &#34;x&#34; | &#34;X&#34; | &#34;%&#34;
+</code></pre><p>align：左对齐，右对齐，填充符号和数字间，居中。</p>
+<p>sign：正数前+负数前-，正数前无负数前-，正数前空格负数前-。</p>
+<p>#：整数、浮点数、复数和 Decimal 使用<code>替代格式</code>。比如整数在用十六进制输出时添加<code>0x</code>前缀。</p>
+<p>width：前导<code>0</code>则相当于<code>fill='0' &amp; align='='</code>。</p>
+<p>,：数字自动添加千分号。</p>
+<p>precision：和<code>type = &quot;f&quot; | &quot;F&quot; | &quot;g&quot; | &quot;G&quot;</code>控制浮点精度，或表示最大域空间。</p>
+<p>type：二进制，字符，十进制，科学计数，科学计数大写，定点，定点(NAN, INF)，
+<em>标准格式（太长）</em>，标准格式大写，<em>数字</em>，八进制，十六进制，十六进制大写，百分比。
+不写的话整数十进制，浮点数差不多是标准格式。</p>
+
+  <script>MathJax={"tex":{"inlineMath":[["$","$"],["\\(","\\)"]],"displayMath":[["$$","$$"],["\\[","\\]"]]}}</script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+<footer>
+<a href="https://github.com/scturtle"><svg><use xlink:href="/icons.svg#github"></use></svg></a>
+<a href="https://twitter.com/scturtle"><svg><use xlink:href="/icons.svg#twitter"></use></svg></a>
+<a href="https://t.me/scturtle"><svg><use xlink:href="/icons.svg#telegram"></use></svg></a>
+<a href="/feed.xml"><svg><use xlink:href="/icons.svg#rss"></use></svg></a>
+
+</footer>
+</main>
+</body>
+</html>

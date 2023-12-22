@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on turtleblog</title>
+    <link>https://scturtle.me/posts.html</link>
+    <description>Recent content in Posts on turtleblog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 26 Nov 2022 08:00:00 +0800</lastBuildDate>
+    <atom:link href="https://scturtle.me/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Static Single Assignment</title>
+      <link>https://scturtle.me/posts/2022-11-26-ssa.html</link>
+      <pubDate>Sat, 26 Nov 2022 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2022-11-26-ssa.html</guid>
+      <description>CFG 抄维基一个例子，如下一段代码：&#xA;x = 5 x = x - 3 if x &amp;lt; 3: y = x * 2 w = y else: y = x - 3 w = x - y z = x + y 可以转换为 control-flow graph：&#xA;flowchart TD A[x = 5\nx = x - 3\nx &lt; 3?] B[y = x * 2\nw = y] C[y = x - 3] D[w = x - y\nz = x + y] entry --&gt; A A --&gt; B A --&gt; C B --&gt; D C --&gt; D SSA SSA (static single assignment) 形式的含义是 IR 里每个变量仅被赋值一次。</description>
+    </item>
+    <item>
+      <title>《Software Engineering at Google》笔记</title>
+      <link>https://scturtle.me/posts/2022-03-05-swe-at-google.html</link>
+      <pubDate>Sat, 05 Mar 2022 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2022-03-05-swe-at-google.html</guid>
+      <description>O. 前言 The great thing about tech is that there is never only one way to do something. Instead, there is a series of trade-offs we all must make depending on the circumstan‐ ces of our team and situation. 技术的伟大之处在于，做一件事从来没有唯一的方法。相反，我们必须根据我们的团队和处境来做一系列的权衡。&#xA;Of course, Google is a unique company, and it would be foolish to assume that the right way to run your software engineering organization is to precisely copy their formula. 当然，谷歌是一家独特的公司，如果认为运行你的软件工程组织的正确方法是精确地复制他们的公式，那就太愚蠢了。</description>
+    </item>
+    <item>
+      <title>Exploring Writing foldl Using foldr</title>
+      <link>https://scturtle.me/posts/2016-01-27-foldl.html</link>
+      <pubDate>Wed, 27 Jan 2016 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2016-01-27-foldl.html</guid>
+      <description>It is widely known that left folding can be implemented by right folding. But the implementation is not so obvious. Let&amp;rsquo;s try writing one from scratch. First, we need these two extensions of GHC to make life better.&#xA;{-# LANGUAGE ScopedTypeVariables, PartialTypeSignatures #-} Let&amp;rsquo;s just ignore the original implementations in Prelude and try writing them by hand:&#xA;import Prelude hiding (foldr, foldl) foldr :: (b -&amp;gt; a -&amp;gt; a) -&amp;gt; a -&amp;gt; [b] -&amp;gt; a foldr _ r [] = r foldr f r (x:xs) = f x (foldr f r xs) foldl :: (a -&amp;gt; b -&amp;gt; a) -&amp;gt; a -&amp;gt; [b] -&amp;gt; a foldl f r [] = r foldl f a (x:xs) = foldl f (f a x) xs If we want to write foldl using foldr, that defination should looks like this:</description>
+    </item>
+    <item>
+      <title>PFPL 读书笔记和闲言碎语</title>
+      <link>https://scturtle.me/posts/2015-12-22-pfpl.html</link>
+      <pubDate>Tue, 22 Dec 2015 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2015-12-22-pfpl.html</guid>
+      <description>Practical Foundations for Programming Languages 是一本介绍编程语言理论（PLT, programming language theory）和类型论（type theory）的书。 和另一本传说中的书 TAPL 相比，更新内容也更广，不拘于一门编程语言，通篇的数学更简洁虽然也更难懂一些。 此外，在介绍的各种类型系统（type system）时，书里特意标出哪些规则是 call by name 那些是 call by value 的，很好地避免了单一一门语言对及早（eager）还是惰性求值的偏颇。 作者的大名也是不能更响，不管是第一版还是修订中的第二版都在网上放出 pdf 实属业界良心。&#xA;呃说起来 PLT 范围很广，从 Lisp/Scheme 的各种奇技淫巧，到 Haskell 从范畴论借来的各种花哨术语，再到不知何年何月才足够实用的 dependent type，摆脱不了的基础便是各种类型系统（type system）和背后的类型论了。 不过就像 PLT 其实没啥用处一样，看了这本书也并不会对写代码有什么帮助。 但是这本书会把各种语言的各种特性纳入一个统一的框架（类型论）中，告诉你哪些真能提升语言的表达能力，哪些特性是扯淡的，哪些看起来很绚丽的其实是另一些特性的组合。 了解这些呢有助于避免被某些新出语言的广告词所欺骗，也可以在永无停歇的语言互黑大战获得高屋建瓴一针见血的能力。&#xA;因为章节很碎（18部分，49章）,下面试图总结性地写一写，算是给自己的笔记，和近来多无所事事的交代。&#xA;Preface 有一句很有意思的话，感觉开了地图炮啊233：&#xA;If language design and programming methodology are to advance from a trade-craft to a rigorous discipline, it is essential that we first get the definitions right.</description>
+    </item>
+    <item>
+      <title>Yoneda Lemma Explained in Haskell</title>
+      <link>https://scturtle.me/posts/2015-06-16-yoneda.html</link>
+      <pubDate>Tue, 16 Jun 2015 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2015-06-16-yoneda.html</guid>
+      <description>When you need something to go faster, hit it with the Yoneda lemma. Still isn&amp;rsquo;t fast enough? Use it again. —— Edward Kmett&#xA;Yoneda lemma may be the first understanding challenge in category theory. For an arbitrary functor $F$ from a category $C$ to the category $Set$, Yoneda lemma says: for any object $A$ of $C$, the natural transformations from the hom-functor $h_A$ to $F$ are in one-to-one correspondence with the elements in $F(A)$.</description>
+    </item>
+    <item>
+      <title>字符串搜索的 Horspool 算法</title>
+      <link>https://scturtle.me/posts/2015-03-14-horspool.html</link>
+      <pubDate>Sat, 14 Mar 2015 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2015-03-14-horspool.html</guid>
+      <description>当你要手写一个字符串搜索算法，你会写什么？&#xA;本文将要介绍的 Horspool 算法简单又不慢，一看就懂，一学就会，一写就过！&#xA;假设我们要在一个叫 haystack 的字符串中搜索另一个叫 needle 的字符串。先对齐，从后往前搜到某个不匹配的字符：&#xA;abcbabababab cbabab 我们可以把 needle 右移一位然后重新从最后一个开始匹配，这是最朴素的算法。但是我们可不可以多移几位呢？我们看 haystack 中的第三个 b，一个策略是移动 needle 使得这个 b 和 needle 里倒数第二个 b 对齐来，这样 needle 移了两个位置。&#xA;abcbabababab cbabab needle 里第一个 b 不行，因为会错过解；最后一个 b 也不行，因为 needle 没有动。所以除了 needle 里最后一个位置之外，倒数第一个配对的字符才是正确的选择。&#xA;所以我们知道如何预处理一下 needle，记录 needle 每个字符的倒数第一次出现的位置(末尾除外)离 needle 末尾的距离，来作为跳转步数。不在 needle 里出现的字符对应的跳转步数则为 |needle|。哎呀这个岂不很好写的：&#xA;int jmp_table[UCHAR_MAX+1]; for(int i = 0; i &amp;lt;= UCHAR_MAX; i++) jmp_table[i] = nlen; int last = nlen - 1; for(int i = 0; i &amp;lt; last; i++) jmp_table[needle[i]] = last - i; 好了现在我们知道，每次出现不匹配时，找到 haystack 里和 needle 对应的最后一个字符，再在 needle 里找它倒数第一次出现的位置(末尾除外)，然后把它们对齐。就是这么简单。</description>
+    </item>
+    <item>
+      <title>Python 字符串格式化详参</title>
+      <link>https://scturtle.me/posts/2013-12-19-string-format-python.html</link>
+      <pubDate>Thu, 19 Dec 2013 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2013-12-19-string-format-python.html</guid>
+      <description>来源docs&#xA;{} 包裹的是替换域，{% raw %} {{ 和 }} {% endraw %} 可用来 escape。&#xA;语法&#xA;替换域 ::= &amp;#34;{&amp;#34; [域名] [&amp;#34;!&amp;#34; 转换] [&amp;#34;:&amp;#34; 格式] &amp;#34;}&amp;#34; 域名 ::= 参数名 (&amp;#34;.&amp;#34; 属性名 | &amp;#34;[&amp;#34; 索引 &amp;#34;]&amp;#34;)* 参数名 ::= [关键字 | 数字] 属性名 ::= 关键字 索引 ::= 数字 | 索引字符串 索引 ::= &amp;lt;任何字符除了 &amp;#34;]&amp;#34;&amp;gt; + 转换 ::= &amp;#34;r&amp;#34; | &amp;#34;s&amp;#34; | &amp;#34;a&amp;#34; 格式 ::= &amp;lt;如下介绍&amp;gt; 参数名要么是关键字（keyword=“&amp;hellip;”）要么是数字（标识第几个参数，3.1中默认可忽略）。 参数名后可加 .属性名（getattr()）或 [索引]（__getitem__()）。&#xA;转换域进行格式化之前的强制类型转换（而不是默认的__format__()）。!s 调用 str()，!r 调用 repr()，!a 调用 ascii()。</description>
+    </item>
+    <item>
+      <title>Average Running Time of Quicksort</title>
+      <link>https://scturtle.me/posts/2013-11-09-quicksort.html</link>
+      <pubDate>Sat, 09 Nov 2013 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2013-11-09-quicksort.html</guid>
+      <description>From an interesting slide.&#xA;We denote $C_N$ as the expected number of comparisons used by sorting an array of length $N$. The recursive formula is like this:&#xA;$$C_N = (N+1) + \sum_{1\leq k \leq N} \frac 1N (C_{k-1}+C_{N-k})$$&#xA;which $N+1$ is the comparisons needed for partitioning, and then plus $N$ ways of partitioning with equal probability. Also we have $C_1 = 0$.&#xA;Noticing the symmetric parttern in the sum part, we get:</description>
+    </item>
+    <item>
+      <title>Random Sampling</title>
+      <link>https://scturtle.me/posts/2013-04-17-random-sampling.html</link>
+      <pubDate>Wed, 17 Apr 2013 08:00:00 +0800</pubDate>
+      <guid>https://scturtle.me/posts/2013-04-17-random-sampling.html</guid>
+      <description>Given a set of items, choosing random one with equal probability can be done by random.choice(items). But what if we are given items one by one without knowing the length of the whole set?&#xA;There is a simple algorithm: For the $k$-th item, we give up previous selection and choose this one with probability $\frac 1 k$. Proof as follows: If we select the $k$-th item, it means that we choose it with probability $\frac 1 k$ and give up all successors.</description>
+    </item>
+  </channel>
+</rss>

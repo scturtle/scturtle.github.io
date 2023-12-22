@@ -1,0 +1,24 @@
+baseURL = 'https://scturtle.me/'
+languageCode = 'en-us'
+title = 'turtleblog'
+uglyURLs = true
+disableKinds = ["taxonomy", "term"]
+publishDir = 'docs'
+[markup.goldmark.renderer]
+unsafe= true
+[markup.highlight]
+style = 'bw'
+[outputs]
+home = ["HTML","Atom"]
+[mediaTypes."application/atom+xml"]
+suffixes = ["xml"]
+[outputFormats.Atom]
+name = "Atom"
+mediaType = "application/atom+xml"
+baseName = "feed"
+rel = "alternate"
+isPlainText = false
+isHTML = false
+noUgly = true
+permalinkable = false
+

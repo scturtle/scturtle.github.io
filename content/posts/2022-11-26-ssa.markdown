@@ -1,0 +1,238 @@
++++
+title = 'Static Single Assignment'
+date = 2022-11-26T08:00:00+08:00
++++
+
+# CFG
+
+抄维基一个例子，如下一段代码：
+```python
+x = 5
+x = x - 3
+if x < 3:
+    y = x * 2
+    w = y
+else:
+    y = x - 3
+w = x - y
+z = x + y
+```
+
+可以转换为 control-flow graph：
+
+```mermaid
+flowchart TD
+    A[x = 5\nx = x - 3\nx < 3?]
+    B[y = x * 2\nw = y]
+    C[y = x - 3]
+    D[w = x - y\nz = x + y]
+    entry --> A
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+```
+
+# SSA
+
+SSA (static single assignment) 形式的含义是 IR 里每个变量仅被赋值一次。
+
+最简单的办法是给每一个变量加一个后缀，变成一个新的变量：
+
+```mermaid
+flowchart TD
+    A[x1 = 5\nx2 = x1 - 3\nx2 < 3?]
+    B[y1 = x2 * 2\nw1 = y1]
+    C[y2 = x2 - 3]
+    D["y3 = Φ(y1, y2)\nw2 = x2 - y3\nz1 = x2 + y3"]
+    entry --> A
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+```
+
+为了解决 node 汇入时该使用哪一个变量的问题，引入了 Φ(phi)-function。含义是从第几个前驱 node 来的话就取第几个参数变量。
+
+如果 `y2 = x2 - 3` 这个 node 里的 `y2` 使用 `y1` 的名字的话，最后一个 block  可以只用 `y1` 也就避免了插入 Φ，得到了更简单的表示。
+
+如何得到 minimal SSA 需要引入 dominator tree。
+
+# dominator tree
+
+回到最初的 CFG：
+
+```mermaid
+flowchart TD
+    A[A:\nx = 5\nx = x - 3\nx < 3?]
+    B[B:\ny = x * 2\nw = y]
+    C[C:\ny = x - 3]
+    D[D:\nw = x - y\nz = x + y]
+    entry --> A
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+```
+
+如果从 entry 到 node Y 的每一条路径都经过了 node X 的话，我们就说 X dominate 了 Y。（后面简写为 `X dom Y`。）
+
+Domination 具有自反性（`X dom X`）和传递性（`X dom Y, Y dom Z => X dom Z`）。
+
+也可以说 X 是 Y 的 dominator。Y 的 dominator 组成集合 `dom(Y)`。
+
+如上图，`dom(A) = {A}`，`dom(B) = {A, B}`，`dom(C) = {A, C}`。
+
+用集合也可以给出递归定义：
+```
+dom(Y) = ∩(dom(X) for X in preds(Y)) ∪ {Y}
+```
+
+Y 的 immediate dominator，简写为 `idom(Y)`，是指非 Y 但离 Y 最近的 dominator。
+
+可以证明 `idom(Y)` 最多只有一个。那么 `idom` 关系可以组成一颗 dominator tree。
+
+`dom(Y)` 集合的定义也可以反过来用 `idom` 表示： 
+```
+dom(Y) = {Y} ∪ {idom(Y)} ∪ {idom(idom(Y))} ··· ∪ {E}
+```
+
+# dominance frontier
+
+简写为 `DF(X)`，可以理解为那些 *恰好* 不再受 X dominate 的 node 的集合。
+
+比如 X dom 了 Z 的一个前驱 Y，但 Z 还有别的没有被 X dom 的前驱，导致 X 并没有 dom Z，那么 Z 就属于 `DF(X)`。
+
+可以看出 dominance frontier 是单个变量的不同定义在 CFG 中交汇的地方，是插入 Φ-function 的理想地方。
+
+但插入 Φ-function 其实又算是一次变量定义。所以通常会先求一个 iterated dominance frontier（设 `defs(v)` 是定义了变量 `v` 的 nodes）：
+
+```
+DF+(v) = DF(defs(v)) u DF(DF(defs(v))) u DF(DF(DF(defs(v)))) ...
+```
+
+也叫做 `joins(v)`。
+
+# Reverse postorder
+
+顾名思义，就是把后续遍历得到的顺序反序一下。相当于 CFG 这种有向有环图上的拓扑序。
+
+按照该顺序来遍历 CFG 中的 node，可以保证在遍历 node 前已经遍历完它的 dominators  了。所以后文算法中遍历 node 的顺序通常指该顺序。
+
+# Dominance algorithm
+
+根据前面定义，一个 naive 的求 dominator 集合的迭代算法可以用伪代码表示为：
+
+```python
+for n in nodes:
+    dom[n] = {1 ... N}
+changed = True
+while changed:
+    changed = False
+    for n in nodes:
+        new_dom = ∩(dom[p] for p in preds[n]) ∪ {n}
+        if new_dom != dom[n]:
+            dom[n] = new_dom
+            changed = True
+```
+
+因为 `dom(...)` 集合可以看做是 dominator tree 上沿着 `idom[...]` 的向上递归到 entry 一条路径，那么 `dom(A) ∩ dom(B)` 就是路径的的共同前缀。
+
+用 `idom` 数组来替代集合的话，求并集变成了求两条路径的最近公共祖先：
+```python
+def intersect(a, b):
+    while a != b:
+        a_idx = get_reverse_postorder_index(a)
+        b_idx = get_reverse_postorder_index(b)
+        if a_idx < b_idx:
+            b = idom[b]
+        else:
+            a = idom[a]
+    return a
+```
+
+原算法可以简化为求 `idom[...]` 也即 dominator tree 的算法：
+```python
+for n in nodes:
+    idom[n] = None
+idom[entry] = entry
+changed = True
+while changed:
+    changed = False
+    for n in nodes:
+        if n == entry:
+            continue
+        new_idom = pred[n][0]  # pick first predecessor
+        for p in pred[n][1:]:  # rest predecessors
+            if idom[n] != None:
+                new_idom = intersect(new_idom, idom[p])
+        if idom[n] != new_idom:
+            idom[n] = new_idom
+            changed = True
+```
+
+有了 dominator tree 之后求 dominance frontier 也很简单。在交汇点 `n` 和 `idom[n]` 之间所有节点，都有 `n` 作为其 dominance frontier 的一员：
+```python
+for n in nodes:
+    if len(preds[n]) >= 2:  # is a join point
+        for p in preds[n]:
+            runner = p
+            while runner != idom[n]:
+                df[runner].add(n)  # may dup
+                runner = idom[runner]
+```
+
+这就是 [《A Simple, Fast Dominance Algorithm》](https://www.cs.rice.edu/~keith/Embed/dom.pdf) 中提出的算法。
+
+# φ-function insertion and variable renaming
+
+每一个变量 v 用 dominance frontier 求 `joins(v)`，顺便插入 Φ-function：
+```python
+for v in variables:
+    saw = {}     # blocks where Φ is added
+    w = queue()  # working list
+    for n in defs[v]:
+        w.push(n)
+    while w:
+        x = w.pop()
+        for y in df[x]:
+            if y not in saw:
+                add v = Φ(...) at start of y
+                saw.add(y)
+                if y not in defs[v]:
+                    w.push(y)
+```
+
+这时变量名还都是原变量名，还不是 SSA，需要做一次 variable renaming。
+
+做法是从 entry 递归向下，一边改新变量名，一边顺便记住最后使用的新变量名，以便后续节点做替换：
+```python
+def ssa_rename_rec(node, last):
+    if node is in saw:
+        continue
+    saw.add(node)
+
+    for inst in node:  # for each instruction in node
+        replace every var used in inst with last[var]
+        if inst defined var:  # maybe store inst or Φ-function
+            create and replace with new_var name
+            last[var] = new_var
+
+    for child of node in dominator tree:
+        # child is immediately dominated by this node
+        ssa_rename_rec(child, copy(last))
+
+ssa_rename_rec(entry)
+```
+
+# Application
+
+[《Bringing GNU Emacs to Native Code》](https://zenodo.org/record/3736363) 就用到了以上的算法。
+
+可以在 [这里](https://github.com/emacs-mirror/emacs/blob/0369dcacf30aff6d4f733872058fa2446330fd02/lisp/emacs-lisp/comp.el) 看到整套算法的 lisp 实现。
+
+# Reference
+
+[《Efficiently computing static single assignment form and the control dependence graph》](https://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf)
+
+[《Static Single Assignment Book》](https://pfalcon.github.io/ssabook/latest/book-full.pdf)

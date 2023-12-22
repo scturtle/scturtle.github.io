@@ -1,0 +1,102 @@
+@charset "utf-8";
+@font-face {
+  font-family: "Berkeley Mono";
+  font-weight: 400;
+  font-style: normal;
+  src: url("/static/fonts/BerkeleyMono-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Berkeley Mono";
+  font-weight: 700;
+  font-style: normal;
+  src: url("/static/fonts/BerkeleyMono-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Berkeley Mono";
+  font-weight: 400;
+  font-style: italic;
+  src: url("/static/fonts/BerkeleyMono-Italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Berkeley Mono";
+  font-weight: 700;
+  font-style: italic;
+  src: url("/static/fonts/BerkeleyMono-BoldItalic.woff2") format("woff2");
+}
+
+/**
+ * Style variables
+ */
+$base-font-family:  'Berkeley Mono', monospace !default;
+$base-font-size:    18px !default;
+$code-font-size:    16px !default;
+$base-line-height:  1.5 !default;
+$main-width:        90% !default;
+$main-max-width:    700px !default;
+
+/**
+ * Global
+ */
+body { background-color: var(--background-color);  margin: 0 auto;  padding: 0;  font-family: $base-font-family;  font-size: $base-font-size;  color: var(--text-color);  text-align: left;  line-height: $base-line-height !important; }
+h1, h2, h3, h4, h5, h6 { font-size: $base-font-size;  margin: 0px;  margin-top: 22px;  font-weight: bold; }
+a { text-decoration: underline;  color: var(--link-color); }
+a:hover { color: var(--background-color); background-color: var(--base-color); }
+
+/**
+ * Layout
+ */
+main { width: $main-width;  max-width: $main-max-width;  margin-right: auto;  margin-left: auto; }
+p { word-wrap: break-word;  word-break: break-word; margin-bottom: 15px; }
+footer { border-top: var(--border);  margin: 20px auto 15px;  padding-top: 10px;  text-align: right; }
+header { margin-top: 25px;  margin-bottom: 10px; }
+
+/**
+ * Highlight/Markup
+ */
+::selection { background: var(--selection-background);  color: var(--selection-text); }
+::-moz-selection { background: var(--selection-background);  color: var(--selection-text); }
+
+/**
+ * Lists
+ */
+ul { list-style: none; list-style-type: none; padding-left: 0; }
+:not(.menu) > ul > li:before { content: "-";  margin-right: 9px; }
+
+/**
+ * Header/Navigation
+ */
+.menu { border-top: var(--border);  border-bottom: var(--border);  margin-bottom: 25px; }
+.menu a { text-decoration: none; }
+.menu h1 { margin: 10px 0; display: inline-block; }
+.menu ul { margin: 10px 0; position: static; float: right; }
+.menu ul li { display: inline;  margin-left: 10px; }
+
+/* footer */
+footer a { display: inline-block; height: 18px; }
+footer svg { height: 18px; width: 16px; }
+footer svg:hover { filter: invert(1); }
+
+/**
+ * Form: TODO
+ */
+
+/* quote */
+blockquote {
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--quote-background);
+  border-left: 10px solid #ccc;
+}
+blockquote p {
+  display: inline;
+}
+
+/**
+ * Code and syntax highlighting
+ */
+pre { color: var(--text-color);  background-color: var(--background-color);  border: 1px solid var(--code-color-1); padding: 3px 5px;
+      overflow: auto;  line-height: 1.2 !important;  font-size: $code-font-size;  font-family: $base-font-family !important; }
+pre.mermaid { border: none; }
