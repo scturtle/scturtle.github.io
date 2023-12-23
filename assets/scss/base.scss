@@ -68,7 +68,7 @@ ul { list-style: none; list-style-type: none; padding-left: 0; }
 /**
  * Header/Navigation
  */
-.menu { border-top: var(--border);  border-bottom: var(--border);  margin-bottom: 25px; }
+.menu { border-bottom: var(--border);  margin-bottom: 25px; }
 .menu a { text-decoration: none; }
 .menu h1 { margin: 10px 0; display: inline-block; }
 .menu ul { margin: 10px 0; position: static; float: right; }
@@ -77,7 +77,6 @@ ul { list-style: none; list-style-type: none; padding-left: 0; }
 /* footer */
 footer a { display: inline-block; height: 18px; }
 footer svg { height: 18px; width: 16px; }
-footer svg:hover { filter: invert(1); }
 
 /**
  * Form: TODO

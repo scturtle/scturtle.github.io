@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
 <title>Static Single Assignment | turtleblog</title>
-<link rel="stylesheet" href="/scss/main.min.f1cb2eb9f9880d51851e06b68e639873c85323200612e26923cba455be4a9a3a.css" integrity="sha256-8csuufmIDVGFHga2jmOYc8hTIyAGEuJpI8ukVb5Kmjo=">
+<link rel="stylesheet" href="/scss/main.min.c0bd8ef6f33e7379d872efa8e0bc6ea110ca8d9d400c9299c473bc78c8b757d0.css" integrity="sha256-wL2O9vM&#43;c3nYcu&#43;o4LxuoRDKjZ1ADJKZxHO8eMi3V9A=">
 
 </head>
 <body>
 <main>
 <header>
 <div class="menu">
-  <h1><a href="/">turtleblog</a></h1>
+  <h1><a href="/">TURTLEBLOG</a></h1>
   <ul>
-    <li><a href="/about.html">/about</a></li>
+    <li><a href="/about.html">/ABOUT</a></li>
   </ul>
 </div>
 
@@ -25,15 +25,15 @@
   <time datetime="2022-11-26T08:00:00&#43;08:00">November 26, 2022</time>
   <h1 id="cfg">CFG</h1>
 <p>抄维基一个例子，如下一段代码：</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>x = 5
-</span></span><span style="display:flex;"><span>x = x - 3
-</span></span><span style="display:flex;"><span><span style="font-weight:bold">if</span> x &lt; 3:
-</span></span><span style="display:flex;"><span>    y = x * 2
-</span></span><span style="display:flex;"><span>    w = y
-</span></span><span style="display:flex;"><span><span style="font-weight:bold">else</span>:
-</span></span><span style="display:flex;"><span>    y = x - 3
-</span></span><span style="display:flex;"><span>w = x - y
-</span></span><span style="display:flex;"><span>z = x + y
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span>
+</span></span><span class="line"><span class="cl"><span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">3</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="n">w</span> <span class="o">=</span> <span class="n">y</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">3</span>
+</span></span><span class="line"><span class="cl"><span class="n">w</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">y</span>
+</span></span><span class="line"><span class="cl"><span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
 </span></span></code></pre></div><p>可以转换为 control-flow graph：</p>
 <pre class="mermaid">flowchart TD
     A[x = 5\nx = x - 3\nx < 3?]
@@ -101,86 +101,86 @@
 <p>按照该顺序来遍历 CFG 中的 node，可以保证在遍历 node 前已经遍历完它的 dominators  了。所以后文算法中遍历 node 的顺序通常指该顺序。</p>
 <h1 id="dominance-algorithm">Dominance algorithm</h1>
 <p>根据前面定义，一个 naive 的求 dominator 集合的迭代算法可以用伪代码表示为：</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">for</span> n <span style="font-weight:bold">in</span> nodes:
-</span></span><span style="display:flex;"><span>    dom[n] = {1 ... N}
-</span></span><span style="display:flex;"><span>changed = <span style="font-weight:bold">True</span>
-</span></span><span style="display:flex;"><span><span style="font-weight:bold">while</span> changed:
-</span></span><span style="display:flex;"><span>    changed = <span style="font-weight:bold">False</span>
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> n <span style="font-weight:bold">in</span> nodes:
-</span></span><span style="display:flex;"><span>        new_dom = <span style="">∩</span>(dom[p] <span style="font-weight:bold">for</span> p <span style="font-weight:bold">in</span> preds[n]) <span style="">∪</span> {n}
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> new_dom != dom[n]:
-</span></span><span style="display:flex;"><span>            dom[n] = new_dom
-</span></span><span style="display:flex;"><span>            changed = <span style="font-weight:bold">True</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">dom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span> <span class="o">...</span> <span class="n">N</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="n">changed</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">changed</span> <span class="o">=</span> <span class="kc">False</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">new_dom</span> <span class="o">=</span> <span class="err">∩</span><span class="p">(</span><span class="n">dom</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">preds</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="err">∪</span> <span class="p">{</span><span class="n">n</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">new_dom</span> <span class="o">!=</span> <span class="n">dom</span><span class="p">[</span><span class="n">n</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">dom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_dom</span>
+</span></span><span class="line"><span class="cl">            <span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
 </span></span></code></pre></div><p>因为 <code>dom(...)</code> 集合可以看做是 dominator tree 上沿着 <code>idom[...]</code> 的向上递归到 entry 一条路径，那么 <code>dom(A) ∩ dom(B)</code> 就是路径的的共同前缀。</p>
 <p>用 <code>idom</code> 数组来替代集合的话，求并集变成了求两条路径的最近公共祖先：</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">def</span> intersect(a, b):
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">while</span> a != b:
-</span></span><span style="display:flex;"><span>        a_idx = get_reverse_postorder_index(a)
-</span></span><span style="display:flex;"><span>        b_idx = get_reverse_postorder_index(b)
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> a_idx &lt; b_idx:
-</span></span><span style="display:flex;"><span>            b = idom[b]
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">else</span>:
-</span></span><span style="display:flex;"><span>            a = idom[a]
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">return</span> a
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">a_idx</span> <span class="o">=</span> <span class="n">get_reverse_postorder_index</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">b_idx</span> <span class="o">=</span> <span class="n">get_reverse_postorder_index</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">a_idx</span> <span class="o">&lt;</span> <span class="n">b_idx</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">b</span> <span class="o">=</span> <span class="n">idom</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">a</span> <span class="o">=</span> <span class="n">idom</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">a</span>
 </span></span></code></pre></div><p>原算法可以简化为求 <code>idom[...]</code> 也即 dominator tree 的算法：</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">for</span> n <span style="font-weight:bold">in</span> nodes:
-</span></span><span style="display:flex;"><span>    idom[n] = <span style="font-weight:bold">None</span>
-</span></span><span style="display:flex;"><span>idom[entry] = entry
-</span></span><span style="display:flex;"><span>changed = <span style="font-weight:bold">True</span>
-</span></span><span style="display:flex;"><span><span style="font-weight:bold">while</span> changed:
-</span></span><span style="display:flex;"><span>    changed = <span style="font-weight:bold">False</span>
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> n <span style="font-weight:bold">in</span> nodes:
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> n == entry:
-</span></span><span style="display:flex;"><span>            <span style="font-weight:bold">continue</span>
-</span></span><span style="display:flex;"><span>        new_idom = pred[n][0]  <span style="font-style:italic"># pick first predecessor</span>
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">for</span> p <span style="font-weight:bold">in</span> pred[n][1:]:  <span style="font-style:italic"># rest predecessors</span>
-</span></span><span style="display:flex;"><span>            <span style="font-weight:bold">if</span> idom[n] != <span style="font-weight:bold">None</span>:
-</span></span><span style="display:flex;"><span>                new_idom = intersect(new_idom, idom[p])
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> idom[n] != new_idom:
-</span></span><span style="display:flex;"><span>            idom[n] = new_idom
-</span></span><span style="display:flex;"><span>            changed = <span style="font-weight:bold">True</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span class="line"><span class="cl"><span class="n">idom</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+</span></span><span class="line"><span class="cl"><span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="n">changed</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">changed</span> <span class="o">=</span> <span class="kc">False</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">entry</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="n">new_idom</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># pick first predecessor</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pred</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="mi">1</span><span class="p">:]:</span>  <span class="c1"># rest predecessors</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">new_idom</span> <span class="o">=</span> <span class="n">intersect</span><span class="p">(</span><span class="n">new_idom</span><span class="p">,</span> <span class="n">idom</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">!=</span> <span class="n">new_idom</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_idom</span>
+</span></span><span class="line"><span class="cl">            <span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
 </span></span></code></pre></div><p>有了 dominator tree 之后求 dominance frontier 也很简单。在交汇点 <code>n</code> 和 <code>idom[n]</code> 之间所有节点，都有 <code>n</code> 作为其 dominance frontier 的一员：</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">for</span> n <span style="font-weight:bold">in</span> nodes:
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">if</span> len(preds[n]) &gt;= 2:  <span style="font-style:italic"># is a join point</span>
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">for</span> p <span style="font-weight:bold">in</span> preds[n]:
-</span></span><span style="display:flex;"><span>            runner = p
-</span></span><span style="display:flex;"><span>            <span style="font-weight:bold">while</span> runner != idom[n]:
-</span></span><span style="display:flex;"><span>                df[runner].add(n)  <span style="font-style:italic"># may dup</span>
-</span></span><span style="display:flex;"><span>                runner = idom[runner]
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">preds</span><span class="p">[</span><span class="n">n</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># is a join point</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">preds</span><span class="p">[</span><span class="n">n</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">runner</span> <span class="o">=</span> <span class="n">p</span>
+</span></span><span class="line"><span class="cl">            <span class="k">while</span> <span class="n">runner</span> <span class="o">!=</span> <span class="n">idom</span><span class="p">[</span><span class="n">n</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">df</span><span class="p">[</span><span class="n">runner</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># may dup</span>
+</span></span><span class="line"><span class="cl">                <span class="n">runner</span> <span class="o">=</span> <span class="n">idom</span><span class="p">[</span><span class="n">runner</span><span class="p">]</span>
 </span></span></code></pre></div><p>这就是 <a href="https://www.cs.rice.edu/~keith/Embed/dom.pdf">《A Simple, Fast Dominance Algorithm》</a> 中提出的算法。</p>
 <h1 id="φ-function-insertion-and-variable-renaming">φ-function insertion and variable renaming</h1>
 <p>每一个变量 v 用 dominance frontier 求 <code>joins(v)</code>，顺便插入 Φ-function：</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">for</span> v <span style="font-weight:bold">in</span> variables:
-</span></span><span style="display:flex;"><span>    saw = {}     <span style="font-style:italic"># blocks where Φ is added</span>
-</span></span><span style="display:flex;"><span>    w = queue()  <span style="font-style:italic"># working list</span>
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> n <span style="font-weight:bold">in</span> defs[v]:
-</span></span><span style="display:flex;"><span>        w.push(n)
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">while</span> w:
-</span></span><span style="display:flex;"><span>        x = w.pop()
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">for</span> y <span style="font-weight:bold">in</span> df[x]:
-</span></span><span style="display:flex;"><span>            <span style="font-weight:bold">if</span> y <span style="font-weight:bold">not</span> <span style="font-weight:bold">in</span> saw:
-</span></span><span style="display:flex;"><span>                add v = Φ(...) at start of y
-</span></span><span style="display:flex;"><span>                saw.add(y)
-</span></span><span style="display:flex;"><span>                <span style="font-weight:bold">if</span> y <span style="font-weight:bold">not</span> <span style="font-weight:bold">in</span> defs[v]:
-</span></span><span style="display:flex;"><span>                    w.push(y)
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">saw</span> <span class="o">=</span> <span class="p">{}</span>     <span class="c1"># blocks where Φ is added</span>
+</span></span><span class="line"><span class="cl">    <span class="n">w</span> <span class="o">=</span> <span class="n">queue</span><span class="p">()</span>  <span class="c1"># working list</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">defs</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">w</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="n">w</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">x</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="n">x</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">y</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">saw</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">add</span> <span class="n">v</span> <span class="o">=</span> <span class="n">Φ</span><span class="p">(</span><span class="o">...</span><span class="p">)</span> <span class="n">at</span> <span class="n">start</span> <span class="n">of</span> <span class="n">y</span>
+</span></span><span class="line"><span class="cl">                <span class="n">saw</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="n">y</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defs</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">w</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 </span></span></code></pre></div><p>这时变量名还都是原变量名，还不是 SSA，需要做一次 variable renaming。</p>
 <p>做法是从 entry 递归向下，一边改新变量名，一边顺便记住最后使用的新变量名，以便后续节点做替换：</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">def</span> ssa_rename_rec(node, last):
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">if</span> node <span style="font-weight:bold">is</span> <span style="font-weight:bold">in</span> saw:
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">continue</span>
-</span></span><span style="display:flex;"><span>    saw.add(node)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> inst <span style="font-weight:bold">in</span> node:  <span style="font-style:italic"># for each instruction in node</span>
-</span></span><span style="display:flex;"><span>        replace every var used <span style="font-weight:bold">in</span> inst <span style="font-weight:bold">with</span> last[var]
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> inst defined var:  <span style="font-style:italic"># maybe store inst or Φ-function</span>
-</span></span><span style="display:flex;"><span>            create <span style="font-weight:bold">and</span> replace <span style="font-weight:bold">with</span> new_var name
-</span></span><span style="display:flex;"><span>            last[var] = new_var
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> child of node <span style="font-weight:bold">in</span> dominator tree:
-</span></span><span style="display:flex;"><span>        <span style="font-style:italic"># child is immediately dominated by this node</span>
-</span></span><span style="display:flex;"><span>        ssa_rename_rec(child, copy(last))
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>ssa_rename_rec(entry)
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">ssa_rename_rec</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">last</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="ow">in</span> <span class="n">saw</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">    <span class="n">saw</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">node</span><span class="p">:</span>  <span class="c1"># for each instruction in node</span>
+</span></span><span class="line"><span class="cl">        <span class="n">replace</span> <span class="n">every</span> <span class="n">var</span> <span class="n">used</span> <span class="ow">in</span> <span class="n">inst</span> <span class="k">with</span> <span class="n">last</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">inst</span> <span class="n">defined</span> <span class="n">var</span><span class="p">:</span>  <span class="c1"># maybe store inst or Φ-function</span>
+</span></span><span class="line"><span class="cl">            <span class="n">create</span> <span class="ow">and</span> <span class="n">replace</span> <span class="k">with</span> <span class="n">new_var</span> <span class="n">name</span>
+</span></span><span class="line"><span class="cl">            <span class="n">last</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_var</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">child</span> <span class="n">of</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">dominator</span> <span class="n">tree</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="c1"># child is immediately dominated by this node</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ssa_rename_rec</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">copy</span><span class="p">(</span><span class="n">last</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">ssa_rename_rec</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
 </span></span></code></pre></div><h1 id="application">Application</h1>
 <p><a href="https://zenodo.org/record/3736363">《Bringing GNU Emacs to Native Code》</a> 就用到了以上的算法。</p>
 <p>可以在 <a href="https://github.com/emacs-mirror/emacs/blob/0369dcacf30aff6d4f733872058fa2446330fd02/lisp/emacs-lisp/comp.el">这里</a> 看到整套算法的 lisp 实现。</p>

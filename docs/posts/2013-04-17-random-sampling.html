@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
 <title>Random Sampling | turtleblog</title>
-<link rel="stylesheet" href="/scss/main.min.f1cb2eb9f9880d51851e06b68e639873c85323200612e26923cba455be4a9a3a.css" integrity="sha256-8csuufmIDVGFHga2jmOYc8hTIyAGEuJpI8ukVb5Kmjo=">
+<link rel="stylesheet" href="/scss/main.min.c0bd8ef6f33e7379d872efa8e0bc6ea110ca8d9d400c9299c473bc78c8b757d0.css" integrity="sha256-wL2O9vM&#43;c3nYcu&#43;o4LxuoRDKjZ1ADJKZxHO8eMi3V9A=">
 
 </head>
 <body>
 <main>
 <header>
 <div class="menu">
-  <h1><a href="/">turtleblog</a></h1>
+  <h1><a href="/">TURTLEBLOG</a></h1>
   <ul>
-    <li><a href="/about.html">/about</a></li>
+    <li><a href="/about.html">/ABOUT</a></li>
   </ul>
 </div>
 
@@ -30,14 +30,14 @@ Proof as follows: If we select the $k$-th item, it means that we choose it with 
 Product of probabilities of all these choices is:</p>
 <p>$$ p_k = \frac 1 k \times \frac {k} {k+1} \times \cdots \times \frac {n-2}{n-1} \times \frac {n-1} n = \frac 1 n $$</p>
 <p>Codes in Python:</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">import</span> <span style="font-weight:bold">random</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="font-weight:bold">def</span> choice(items):
-</span></span><span style="display:flex;"><span>    selection = <span style="font-weight:bold">None</span>
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> i, item <span style="font-weight:bold">in</span> enumerate(items):
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> random.randint(0, i) == 0:
-</span></span><span style="display:flex;"><span>            selection = item
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">return</span> selection
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">random</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">choice</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">selection</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">selection</span> <span class="o">=</span> <span class="n">item</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">selection</span>
 </span></span></code></pre></div><p>We can generalize this algorithm. For a set of items, each one is associated with a weight $w_i$.
 Our goal is to select a random one based on its weight ratio.
 The algorithm is similar to the previous one: For the $k$-th item, replace the current selection with it with probability $\frac {w_k} {\sum_{i=1}^k w_i}$.
@@ -45,14 +45,14 @@ Proof is analogical:</p>
 <p>$$p_k = \frac {w_k} {\sum_{i=1}^k w_i} \times \frac {\sum_{i=1}^k w_i} {\sum_{i=1}^{k+1} w_i}
 \times \cdots \times \frac {\sum_{i=1}^{n-2} w_i} {\sum_{i=1}^{n-1} w_i} \times \frac {\sum_{i=1}^{n-1} w_i} {\sum_{i=1}^{n} w_i} = \frac {w_k} {\sum_{i=1}^n w_i}$$</p>
 <p>Codes in Python:</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="font-weight:bold">def</span> weightedChoice(items, weights):
-</span></span><span style="display:flex;"><span>    selection = <span style="font-weight:bold">None</span>
-</span></span><span style="display:flex;"><span>    total_weight = 0.0
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">for</span> item, weight <span style="font-weight:bold">in</span> zip(items, weights):
-</span></span><span style="display:flex;"><span>        total_weight += weight
-</span></span><span style="display:flex;"><span>        <span style="font-weight:bold">if</span> random.random() * total_weight &lt; weight:
-</span></span><span style="display:flex;"><span>            selection = item
-</span></span><span style="display:flex;"><span>    <span style="font-weight:bold">return</span> selection
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">weightedChoice</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">selection</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span class="line"><span class="cl">    <span class="n">total_weight</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">total_weight</span> <span class="o">+=</span> <span class="n">weight</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="n">total_weight</span> <span class="o">&lt;</span> <span class="n">weight</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">selection</span> <span class="o">=</span> <span class="n">item</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">selection</span>
 </span></span></code></pre></div><p>There is another amazing method to do this weighted random sampling:
 For each item, get a random $r_i \in [0, 1]$,
 and <em>reweight</em> this item as $w&rsquo;_i = r_i^{1 / {w_i}}$.

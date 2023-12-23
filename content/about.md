@@ -1,9 +1,9 @@
 +++
-title = 'About'
-layout = 'about'
+title = 'about'
+layout = 'page'
 +++
 
-<img src='/head.jpg' style='width:200px;'/>
+<img src='/imgs/head.jpg' style='width:200px;'/>
 
 I'm SHEN Chao, a coder.
 

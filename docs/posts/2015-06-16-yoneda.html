@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
 <title>Yoneda Lemma Explained in Haskell | turtleblog</title>
-<link rel="stylesheet" href="/scss/main.min.f1cb2eb9f9880d51851e06b68e639873c85323200612e26923cba455be4a9a3a.css" integrity="sha256-8csuufmIDVGFHga2jmOYc8hTIyAGEuJpI8ukVb5Kmjo=">
+<link rel="stylesheet" href="/scss/main.min.c0bd8ef6f33e7379d872efa8e0bc6ea110ca8d9d400c9299c473bc78c8b757d0.css" integrity="sha256-wL2O9vM&#43;c3nYcu&#43;o4LxuoRDKjZ1ADJKZxHO8eMi3V9A=">
 
 </head>
 <body>
 <main>
 <header>
 <div class="menu">
-  <h1><a href="/">turtleblog</a></h1>
+  <h1><a href="/">TURTLEBLOG</a></h1>
   <ul>
-    <li><a href="/about.html">/about</a></li>
+    <li><a href="/about.html">/ABOUT</a></li>
   </ul>
 </div>
 
@@ -55,11 +55,11 @@ if there is a polymorphic function <code>g</code> that knows how to convert any 
 then this <code>g</code> is just something holding a <code>f a</code>
 (and remembering to <code>fmap</code> any <code>a -&gt; b</code> on it), and vice versa.</p>
 <p>To prove this isomorphism, we need to show that for the following two conversion functions:</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-haskell" data-lang="haskell"><span style="display:flex;"><span>fw <span style="font-weight:bold">::</span> (<span style="">Functor</span> f) <span style="font-weight:bold">=&gt;</span> (forall b . (a <span style="font-weight:bold">-&gt;</span> b) <span style="font-weight:bold">-&gt;</span> f b) <span style="font-weight:bold">-&gt;</span> f a
-</span></span><span style="display:flex;"><span>fw f <span style="font-weight:bold">=</span> f id
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>bw <span style="font-weight:bold">::</span> (<span style="">Functor</span> f) <span style="font-weight:bold">=&gt;</span> f a <span style="font-weight:bold">-&gt;</span> (forall b . (a <span style="font-weight:bold">-&gt;</span> b) <span style="font-weight:bold">-&gt;</span> f b)
-</span></span><span style="display:flex;"><span>bw x f <span style="font-weight:bold">=</span> fmap f x
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-haskell" data-lang="haskell"><span class="line"><span class="cl"><span class="nf">fw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">a</span>
+</span></span><span class="line"><span class="cl"><span class="nf">fw</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">f</span> <span class="n">id</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">bw</span> <span class="ow">::</span> <span class="p">(</span><span class="kt">Functor</span> <span class="n">f</span><span class="p">)</span> <span class="ow">=&gt;</span> <span class="n">f</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="p">(</span><span class="n">forall</span> <span class="n">b</span> <span class="o">.</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="n">f</span> <span class="n">b</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nf">bw</span> <span class="n">x</span> <span class="n">f</span> <span class="ow">=</span> <span class="n">fmap</span> <span class="n">f</span> <span class="n">x</span>
 </span></span></code></pre></div><p>the following two statements are both true:</p>
 <pre tabindex="0"><code>fw . bw = id
 bw . fw = id

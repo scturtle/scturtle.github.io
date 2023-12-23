@@ -4,10 +4,13 @@ title = 'turtleblog'
 uglyURLs = true
 disableKinds = ["taxonomy", "term"]
 publishDir = 'docs'
+[params.author]
+name = 'scturtle'
 [markup.goldmark.renderer]
 unsafe= true
 [markup.highlight]
 style = 'bw'
+noclasses = false
 [outputs]
 home = ["HTML","Atom"]
 [mediaTypes."application/atom+xml"]
